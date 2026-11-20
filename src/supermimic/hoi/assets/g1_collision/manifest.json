@@ -1,0 +1,520 @@
+{
+  "schema": "supermimic_hoi_g1_collision_v1",
+  "python": "3.12.4",
+  "packages": {
+    "coacd": "1.0.7",
+    "trimesh": "4.11.1",
+    "numpy": "2.5.1",
+    "scipy": "1.17.0"
+  },
+  "parts": {
+    "left_foot": {
+      "source_mesh": "left_ankle_roll_link.STL",
+      "source_sha256": "c4092af943141d4d9f74232f3cfa345afc6565f46a077793b8ae0e68b39dc33f",
+      "link": "left_ankle_roll_link",
+      "geom_pos": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "geom_quat": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "coacd": {
+        "threshold": 0.06,
+        "max_convex_hull": 12,
+        "preprocess_mode": "on",
+        "preprocess_resolution": 80,
+        "decimate": false,
+        "merge": true,
+        "seed": 0
+      },
+      "kdop_directions": 64,
+      "hulls": [
+        {
+          "file": "left_foot_hull_00.obj",
+          "vertices": 114,
+          "sha256": "cf64950d6585a9e961f0a169af08f61a03163cf452d62a309668e3e262ce0011"
+        },
+        {
+          "file": "left_foot_hull_01.obj",
+          "vertices": 71,
+          "sha256": "9ba236d17b19460ed2ed157eb8264d01548728ab3a5b7269f2c6d8142288ef33"
+        },
+        {
+          "file": "left_foot_hull_02.obj",
+          "vertices": 102,
+          "sha256": "2f2101667155dccd115be57af8e4ac9582c18e8e99edff1e113285f744a97619"
+        },
+        {
+          "file": "left_foot_hull_03.obj",
+          "vertices": 120,
+          "sha256": "fc0fd3dc5ccc409e6b6c8ea4bdded8a23be2043594dfbaa186bb751a4dc5c281"
+        },
+        {
+          "file": "left_foot_hull_04.obj",
+          "vertices": 76,
+          "sha256": "3e2257c05ab85e5f81dbfb308bdeb3a1e9973d3ddbc70de56854d3f78fcac8b2"
+        },
+        {
+          "file": "left_foot_hull_05.obj",
+          "vertices": 65,
+          "sha256": "223484e8a4936613a6ba7669451e23212d785a99041a538d31804e4590a3293f"
+        },
+        {
+          "file": "left_foot_hull_06.obj",
+          "vertices": 103,
+          "sha256": "397b8b8155b4a25a7711e0224b5fa46d51d31da0e0cdbbf5ebe932a90a7220e5"
+        },
+        {
+          "file": "left_foot_hull_07.obj",
+          "vertices": 136,
+          "sha256": "e8ee7b74d37f16dbd96debd4ac956fb14ec80e666f3c54f3e3f483e4c7f4a200"
+        },
+        {
+          "file": "left_foot_hull_08.obj",
+          "vertices": 125,
+          "sha256": "143baedf39224f896366d1084ea21b5ea32d49091d4cd7eda9176fbdaa4420f0"
+        },
+        {
+          "file": "left_foot_hull_09.obj",
+          "vertices": 93,
+          "sha256": "154252566b7161b943248986ffbb754ca9b0a1c8c7156bf5f92b87582a4bb457"
+        },
+        {
+          "file": "left_foot_hull_10.obj",
+          "vertices": 62,
+          "sha256": "5936082f37c9e76e7023e02d6d5abfecffc39180fc7ee071dda6293eccfe85bf"
+        },
+        {
+          "file": "left_foot_hull_11.obj",
+          "vertices": 110,
+          "sha256": "9ab569d2797ef89c5d362bc7db3d5fa2ae2fa46cb6afbddad7406c044563bf25"
+        }
+      ],
+      "metrics": {
+        "gap": {
+          "max_mm": 0.0,
+          "p99_mm": 0.0,
+          "p95_mm": 0.0,
+          "frac_gt_2mm": 0.0
+        },
+        "bulge": {
+          "max_mm": 13.05,
+          "p99_mm": 9.18,
+          "p95_mm": 6.99,
+          "frac_gt_2mm": 0.3538
+        }
+      },
+      "limits": {
+        "max_gap_mm": 0.5,
+        "max_bulge_p95_mm": 7.0
+      },
+      "passed": true
+    },
+    "right_foot": {
+      "source_mesh": "right_ankle_roll_link.STL",
+      "source_sha256": "4b66222ea56653e627711b56d0a8949b4920da5df091da0ceb343f54e884e3a5",
+      "link": "right_ankle_roll_link",
+      "geom_pos": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "geom_quat": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "coacd": {
+        "threshold": 0.06,
+        "max_convex_hull": 12,
+        "preprocess_mode": "on",
+        "preprocess_resolution": 80,
+        "decimate": false,
+        "merge": true,
+        "seed": 0
+      },
+      "kdop_directions": 64,
+      "hulls": [
+        {
+          "file": "right_foot_hull_00.obj",
+          "vertices": 117,
+          "sha256": "ebcdd889efa2fe51dd31da295b6a0909f6972c88cda7ec6926a76f0396bb6cdc"
+        },
+        {
+          "file": "right_foot_hull_01.obj",
+          "vertices": 76,
+          "sha256": "562959723452845a680ac69d26aabfac7d883e9a3cc3af9febfde403b8e14202"
+        },
+        {
+          "file": "right_foot_hull_02.obj",
+          "vertices": 49,
+          "sha256": "a53eabb2860ec8c73d275b78291d6d43872de40af4226c64c76c331aaab3bd9c"
+        },
+        {
+          "file": "right_foot_hull_03.obj",
+          "vertices": 78,
+          "sha256": "3e68730845f25a423d2d66cbd78767219bb356aaf8595bb644b7eeae5c1a5aea"
+        },
+        {
+          "file": "right_foot_hull_04.obj",
+          "vertices": 62,
+          "sha256": "ecbb1dceb98c81ffb43da5092ceafc23f43cde13ecc7db09257428d981b54b9a"
+        },
+        {
+          "file": "right_foot_hull_05.obj",
+          "vertices": 136,
+          "sha256": "ee855bd152be6f82ceb22f29e65f6846e0c4d9e4446654cd38a99a50ec4100d1"
+        },
+        {
+          "file": "right_foot_hull_06.obj",
+          "vertices": 123,
+          "sha256": "c86823eea3e5a679ea4cf983d6b683cd515e198f7a0e304aea53d32007076b28"
+        },
+        {
+          "file": "right_foot_hull_07.obj",
+          "vertices": 116,
+          "sha256": "475004235a391955c4a6ecf46d03a28b95d2dc07a283aaff360d5355df3d467a"
+        },
+        {
+          "file": "right_foot_hull_08.obj",
+          "vertices": 115,
+          "sha256": "e66e31771ca8b46ff123673ca42535b1b82620cc7abc0099732f995e67ab1a53"
+        },
+        {
+          "file": "right_foot_hull_09.obj",
+          "vertices": 64,
+          "sha256": "84936ba168a475e915b6224d23f1018556b5e3935381b6fa7be7e18e64cd997e"
+        },
+        {
+          "file": "right_foot_hull_10.obj",
+          "vertices": 104,
+          "sha256": "4541bec4049c3ebb8dfbf8bed526a94b00ccda4fbf3cab6b2051d09f6391e474"
+        },
+        {
+          "file": "right_foot_hull_11.obj",
+          "vertices": 106,
+          "sha256": "df93d2045ef2c1748dd64952bf4ebfcc960ffcd440e33a65398a17af90a89291"
+        }
+      ],
+      "metrics": {
+        "gap": {
+          "max_mm": 0.0,
+          "p99_mm": 0.0,
+          "p95_mm": 0.0,
+          "frac_gt_2mm": 0.0
+        },
+        "bulge": {
+          "max_mm": 12.7,
+          "p99_mm": 8.62,
+          "p95_mm": 6.87,
+          "frac_gt_2mm": 0.3927
+        }
+      },
+      "limits": {
+        "max_gap_mm": 0.5,
+        "max_bulge_p95_mm": 7.0
+      },
+      "passed": true
+    },
+    "left_hand": {
+      "source_mesh": "left_rubber_hand.STL",
+      "source_sha256": "cff2221a690fa69303f61fce68f2d155c1517b52efb6ca9262dd56e0bc6e70fe",
+      "link": "left_wrist_yaw_link",
+      "geom_pos": [
+        0.0415,
+        0.003,
+        0.0
+      ],
+      "geom_quat": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "coacd": {
+        "threshold": 0.06,
+        "max_convex_hull": 20,
+        "preprocess_mode": "auto",
+        "preprocess_resolution": 50,
+        "decimate": false,
+        "merge": true,
+        "seed": 0
+      },
+      "kdop_directions": 64,
+      "hulls": [
+        {
+          "file": "left_hand_hull_00.obj",
+          "vertices": 136,
+          "sha256": "50050c7944b0840fb4c6fe295b2a41c40e6f552953ab1bc31bb051a7929e5b02"
+        },
+        {
+          "file": "left_hand_hull_01.obj",
+          "vertices": 136,
+          "sha256": "3b829e3a6384ca123b69f9b2caa9a9b348fdf0f440a4725c93c7487d068917ce"
+        },
+        {
+          "file": "left_hand_hull_02.obj",
+          "vertices": 134,
+          "sha256": "3b98322547304d385d4348b92ae4dbec713352d350ab5b651f471480350ec79c"
+        },
+        {
+          "file": "left_hand_hull_03.obj",
+          "vertices": 136,
+          "sha256": "b3d0155d2ffd0d918cd71ab9dd2bd0edd4477c0032978b9582c6226a4c2d2b32"
+        },
+        {
+          "file": "left_hand_hull_04.obj",
+          "vertices": 43,
+          "sha256": "54fb0c581c4737e6317c50120e8e9a5215669c31e1ac99808a89389c6fa52058"
+        },
+        {
+          "file": "left_hand_hull_05.obj",
+          "vertices": 136,
+          "sha256": "1dfa7459ad89e3d74e05f2389d3f315fd67dd7c83ef02dd8de47efed50e35de1"
+        },
+        {
+          "file": "left_hand_hull_06.obj",
+          "vertices": 136,
+          "sha256": "d06c6fe86da30746c9068f247e8cc407fcaa82be6c5c911cc119121d6b34f9b6"
+        },
+        {
+          "file": "left_hand_hull_07.obj",
+          "vertices": 134,
+          "sha256": "559d8f1aa78ea3a17dce2cada3dedd2042fd703ab67469a57f5e1df3d8a1b5f9"
+        },
+        {
+          "file": "left_hand_hull_08.obj",
+          "vertices": 136,
+          "sha256": "664affdeeaa0290844891f0fc350d142d771b0fc13e6ad1301f7dd3f3def481a"
+        },
+        {
+          "file": "left_hand_hull_09.obj",
+          "vertices": 136,
+          "sha256": "7a328b77041a6cfee69a753b3a3e7941a0655f51b3410de535277687223106e9"
+        },
+        {
+          "file": "left_hand_hull_10.obj",
+          "vertices": 136,
+          "sha256": "d468741455a912ed25e84bd42ff2b0b91dc9e5eaebc942c1e5726e5cd4bdde08"
+        },
+        {
+          "file": "left_hand_hull_11.obj",
+          "vertices": 103,
+          "sha256": "fe5a2c85d5fa4eec9fd6546e7cd3fb3cacf1a674033876d60036bd1ba787e0cf"
+        },
+        {
+          "file": "left_hand_hull_12.obj",
+          "vertices": 136,
+          "sha256": "bf74e9e6cef33466fb4a8df159ca659c6b7a404b9ca7d7aceadaf595d10eaae2"
+        },
+        {
+          "file": "left_hand_hull_13.obj",
+          "vertices": 41,
+          "sha256": "d9205ee014afde7103d4350e8371e7f3504369a8a2e63d9e893d50e661c122c4"
+        },
+        {
+          "file": "left_hand_hull_14.obj",
+          "vertices": 58,
+          "sha256": "ce9115683b25edbf569027d5131a9b4cebc13d263070d53225435839446b5208"
+        },
+        {
+          "file": "left_hand_hull_15.obj",
+          "vertices": 91,
+          "sha256": "739323f7acb2ecdf7465877ab756f6881dd289ea5a7472531cd52286182ce11f"
+        },
+        {
+          "file": "left_hand_hull_16.obj",
+          "vertices": 88,
+          "sha256": "cf54b4ddab20d2d6796593de1b22dc2dd57cf55fca95e99113d3dc9cb06a877c"
+        },
+        {
+          "file": "left_hand_hull_17.obj",
+          "vertices": 136,
+          "sha256": "0bbbbb4f534cb2b7ff8185ade58cefdf75c4e844363db999cf0eae7cd817f791"
+        },
+        {
+          "file": "left_hand_hull_18.obj",
+          "vertices": 79,
+          "sha256": "d7e7c29208e5e8610028fa11677bcb5c78ee9e72e73055863ea5ca01bad7363a"
+        },
+        {
+          "file": "left_hand_hull_19.obj",
+          "vertices": 38,
+          "sha256": "a2afe2bb81404da3bf8399cad732dfc60741bf5da002e69d52837bb0c008cc77"
+        }
+      ],
+      "metrics": {
+        "gap": {
+          "max_mm": 0.0,
+          "p99_mm": 0.0,
+          "p95_mm": 0.0,
+          "frac_gt_2mm": 0.0
+        },
+        "bulge": {
+          "max_mm": 7.39,
+          "p99_mm": 4.47,
+          "p95_mm": 2.75,
+          "frac_gt_2mm": 0.0906
+        }
+      },
+      "limits": {
+        "max_gap_mm": 0.5,
+        "max_bulge_p95_mm": 3.0
+      },
+      "passed": true
+    },
+    "right_hand": {
+      "source_mesh": "right_rubber_hand.STL",
+      "source_sha256": "99533b778bca6246144fa511bb9d4e555e075c641f2a0251e04372869cd99d67",
+      "link": "right_wrist_yaw_link",
+      "geom_pos": [
+        0.0415,
+        -0.003,
+        0.0
+      ],
+      "geom_quat": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "coacd": {
+        "threshold": 0.06,
+        "max_convex_hull": 20,
+        "preprocess_mode": "auto",
+        "preprocess_resolution": 50,
+        "decimate": false,
+        "merge": true,
+        "seed": 0
+      },
+      "kdop_directions": 64,
+      "hulls": [
+        {
+          "file": "right_hand_hull_00.obj",
+          "vertices": 135,
+          "sha256": "85f4bfa9d64b0e2cd9834a7da688f779d06495611b74b20bf6e6dc0d2f0e7a37"
+        },
+        {
+          "file": "right_hand_hull_01.obj",
+          "vertices": 136,
+          "sha256": "a89592e4b0e295e9173e9f1a4275f13c01a759f0c03bf0aea3228e1be7941144"
+        },
+        {
+          "file": "right_hand_hull_02.obj",
+          "vertices": 135,
+          "sha256": "3164c814f2f02ca357f0d2b61b9793797b199432f8bd2f10861d3fd13c0dad15"
+        },
+        {
+          "file": "right_hand_hull_03.obj",
+          "vertices": 132,
+          "sha256": "6d6656535afcd373b82f7aaa20c003ee815620298e30a5bc48e7419b81bbd522"
+        },
+        {
+          "file": "right_hand_hull_04.obj",
+          "vertices": 136,
+          "sha256": "0d81ca6d86b33086163fc92e0cca82e81a6779b75d6781ac875f377d713a33cb"
+        },
+        {
+          "file": "right_hand_hull_05.obj",
+          "vertices": 136,
+          "sha256": "423169a9f3fa0a6a66db3993f3f78d3e77de1cb57968853972a877bcaede71d5"
+        },
+        {
+          "file": "right_hand_hull_06.obj",
+          "vertices": 133,
+          "sha256": "efd35c2d6f6ee9dc600373cc7cb9e854549e79da6de0a908790ff59606194351"
+        },
+        {
+          "file": "right_hand_hull_07.obj",
+          "vertices": 133,
+          "sha256": "7abe3224b543fdf52083a6ad637b5556aca3405373c0d91ca45426d3046a1e48"
+        },
+        {
+          "file": "right_hand_hull_08.obj",
+          "vertices": 135,
+          "sha256": "b47b1b225e51e8ec10bb30845db04b50b3b60b9109e2912b5658ad605ddacd88"
+        },
+        {
+          "file": "right_hand_hull_09.obj",
+          "vertices": 136,
+          "sha256": "5702f720e449837b3367abcc4792a73f64fbdb613921152d18d045a5cad62c1e"
+        },
+        {
+          "file": "right_hand_hull_10.obj",
+          "vertices": 113,
+          "sha256": "4fd0ab60e5a286b88a083959e85f7600d7bfae6df74f55c10da610eb12a00e05"
+        },
+        {
+          "file": "right_hand_hull_11.obj",
+          "vertices": 49,
+          "sha256": "c22048f18855613c40dd3388425b0194c01319bda44dda0028f6d730c586b231"
+        },
+        {
+          "file": "right_hand_hull_12.obj",
+          "vertices": 135,
+          "sha256": "1ccb41d55af0f1b52499ff761e3a046438fede7c02f1a330e2d3ef5e79efedbf"
+        },
+        {
+          "file": "right_hand_hull_13.obj",
+          "vertices": 136,
+          "sha256": "93b7d8670dd2c023fa5279f1e370b661983b7a1d01e93f1b2cb85d220bbc8f05"
+        },
+        {
+          "file": "right_hand_hull_14.obj",
+          "vertices": 78,
+          "sha256": "3e4fa1166c483020e09c4ca4fdc1fe355cb8036cd62ebde5d30f09705e5a117f"
+        },
+        {
+          "file": "right_hand_hull_15.obj",
+          "vertices": 136,
+          "sha256": "f2ae6f01d401c179e26651cfd6d1c929ab23fd50ee7d87e3eb055ce7a2191f08"
+        },
+        {
+          "file": "right_hand_hull_16.obj",
+          "vertices": 136,
+          "sha256": "a6cf12e0169e12926a92646cc10d28c0fa0bc3cd7f4d1c31f48d37e02373da39"
+        },
+        {
+          "file": "right_hand_hull_17.obj",
+          "vertices": 70,
+          "sha256": "007774d55c097d22107276dc91a60836e255ecb6a35be87f92a4effbad43e9ae"
+        },
+        {
+          "file": "right_hand_hull_18.obj",
+          "vertices": 89,
+          "sha256": "3b096c34fff2d55ca996b139dca317d500abec2f569500832ca852fc3520b430"
+        },
+        {
+          "file": "right_hand_hull_19.obj",
+          "vertices": 114,
+          "sha256": "96134cb35569d99ef43aa483afb350360fd789a32787dd3a64d5333bd9e68252"
+        }
+      ],
+      "metrics": {
+        "gap": {
+          "max_mm": 0.0,
+          "p99_mm": 0.0,
+          "p95_mm": 0.0,
+          "frac_gt_2mm": 0.0
+        },
+        "bulge": {
+          "max_mm": 11.4,
+          "p99_mm": 4.22,
+          "p95_mm": 2.57,
+          "frac_gt_2mm": 0.0855
+        }
+      },
+      "limits": {
+        "max_gap_mm": 0.5,
+        "max_bulge_p95_mm": 3.0
+      },
+      "passed": true
+    }
+  }
+}

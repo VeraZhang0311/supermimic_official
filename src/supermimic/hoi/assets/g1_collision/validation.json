@@ -1,0 +1,4270 @@
+{
+  "coverage": {
+    "left_foot": {
+      "visual_vertices": 6543,
+      "hull_geoms": 12,
+      "uncovered_vertices": 0,
+      "max_plane_violation_mm": 0.0,
+      "passed": true
+    },
+    "right_foot": {
+      "visual_vertices": 6547,
+      "hull_geoms": 12,
+      "uncovered_vertices": 0,
+      "max_plane_violation_mm": 0.0,
+      "passed": true
+    },
+    "left_hand": {
+      "visual_vertices": 22876,
+      "hull_geoms": 20,
+      "uncovered_vertices": 0,
+      "max_plane_violation_mm": 0.011,
+      "passed": true
+    },
+    "right_hand": {
+      "visual_vertices": 21928,
+      "hull_geoms": 20,
+      "uncovered_vertices": 0,
+      "max_plane_violation_mm": 0.011,
+      "passed": true
+    }
+  },
+  "press": {
+    "top_3cm_leg_20N/old_5x16_hulls/mujoco_default": {
+      "presses": 18,
+      "max_penetration_mm": 3.06,
+      "frac_gt_2mm": 0.056,
+      "frac_gt_5mm": 0.0,
+      "max_jitter_std_mm": 0.004,
+      "contact_dims": [
+        3
+      ],
+      "per_press": [
+        {
+          "pos": [
+            -0.04,
+            -0.015
+          ],
+          "penetration_mm": 0.88,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.04,
+            0
+          ],
+          "penetration_mm": 0.52,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.04,
+            0.015
+          ],
+          "penetration_mm": 0.52,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            -0.015
+          ],
+          "penetration_mm": 1.02,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            0
+          ],
+          "penetration_mm": 0.93,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            0.015
+          ],
+          "penetration_mm": 0.86,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.02,
+            -0.015
+          ],
+          "penetration_mm": 3.06,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.02,
+            0
+          ],
+          "penetration_mm": -0.7,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.02,
+            0.015
+          ],
+          "penetration_mm": 0.01,
+          "jitter_std_mm": 0.004,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            -0.015
+          ],
+          "penetration_mm": -2.49,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            0
+          ],
+          "penetration_mm": -2.47,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            0.015
+          ],
+          "penetration_mm": -2.28,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.08,
+            -0.015
+          ],
+          "penetration_mm": -4.89,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.08,
+            0
+          ],
+          "penetration_mm": -4.88,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.08,
+            0.015
+          ],
+          "penetration_mm": -4.78,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            -0.015
+          ],
+          "penetration_mm": -3.26,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            0
+          ],
+          "penetration_mm": -3.36,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            0.015
+          ],
+          "penetration_mm": -3.35,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        }
+      ]
+    },
+    "top_3cm_leg_20N/new_hulls/mujoco_default": {
+      "presses": 18,
+      "max_penetration_mm": -0.51,
+      "frac_gt_2mm": 0.0,
+      "frac_gt_5mm": 0.0,
+      "max_jitter_std_mm": 0.005,
+      "contact_dims": [
+        3
+      ],
+      "per_press": [
+        {
+          "pos": [
+            -0.04,
+            -0.015
+          ],
+          "penetration_mm": -0.51,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.04,
+            0
+          ],
+          "penetration_mm": -0.51,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.04,
+            0.015
+          ],
+          "penetration_mm": -0.51,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            -0.015
+          ],
+          "penetration_mm": -3.36,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            0
+          ],
+          "penetration_mm": -3.75,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            0.015
+          ],
+          "penetration_mm": -3.73,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.02,
+            -0.015
+          ],
+          "penetration_mm": -5.12,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.02,
+            0
+          ],
+          "penetration_mm": -1.31,
+          "jitter_std_mm": 0.005,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.02,
+            0.015
+          ],
+          "penetration_mm": -4.12,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            -0.015
+          ],
+          "penetration_mm": -2.84,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            0
+          ],
+          "penetration_mm": -2.82,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            0.015
+          ],
+          "penetration_mm": -2.86,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.08,
+            -0.015
+          ],
+          "penetration_mm": -8.79,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.08,
+            0
+          ],
+          "penetration_mm": -8.77,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.08,
+            0.015
+          ],
+          "penetration_mm": -7.03,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            -0.015
+          ],
+          "penetration_mm": -8.48,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            0
+          ],
+          "penetration_mm": -8.45,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            0.015
+          ],
+          "penetration_mm": -7.65,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        }
+      ]
+    },
+    "top_3cm_leg_20N/new_hulls/solref_0.01_elliptic": {
+      "presses": 18,
+      "max_penetration_mm": -0.59,
+      "frac_gt_2mm": 0.0,
+      "frac_gt_5mm": 0.0,
+      "max_jitter_std_mm": 0.017,
+      "contact_dims": [
+        3
+      ],
+      "per_press": [
+        {
+          "pos": [
+            -0.04,
+            -0.015
+          ],
+          "penetration_mm": -0.59,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.04,
+            0
+          ],
+          "penetration_mm": -0.59,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.04,
+            0.015
+          ],
+          "penetration_mm": -0.59,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            -0.015
+          ],
+          "penetration_mm": -3.83,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            0
+          ],
+          "penetration_mm": -4.0,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            0.015
+          ],
+          "penetration_mm": -4.09,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.02,
+            -0.015
+          ],
+          "penetration_mm": -7.49,
+          "jitter_std_mm": 0.017,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.02,
+            0
+          ],
+          "penetration_mm": -10.93,
+          "jitter_std_mm": 0.017,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.02,
+            0.015
+          ],
+          "penetration_mm": -7.18,
+          "jitter_std_mm": 0.017,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            -0.015
+          ],
+          "penetration_mm": -2.92,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            0
+          ],
+          "penetration_mm": -2.91,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            0.015
+          ],
+          "penetration_mm": -2.94,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.08,
+            -0.015
+          ],
+          "penetration_mm": -9.09,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.08,
+            0
+          ],
+          "penetration_mm": -9.08,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.08,
+            0.015
+          ],
+          "penetration_mm": -7.32,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            -0.015
+          ],
+          "penetration_mm": -8.78,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            0
+          ],
+          "penetration_mm": -8.76,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            0.015
+          ],
+          "penetration_mm": -7.95,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        }
+      ]
+    },
+    "top_3cm_leg_20N/new_hulls/solref_0.01_solimp_0.99_elliptic": {
+      "presses": 18,
+      "max_penetration_mm": -0.61,
+      "frac_gt_2mm": 0.0,
+      "frac_gt_5mm": 0.0,
+      "max_jitter_std_mm": 0.002,
+      "contact_dims": [
+        3
+      ],
+      "per_press": [
+        {
+          "pos": [
+            -0.04,
+            -0.015
+          ],
+          "penetration_mm": -0.62,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.04,
+            0
+          ],
+          "penetration_mm": -0.61,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.04,
+            0.015
+          ],
+          "penetration_mm": -0.62,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            -0.015
+          ],
+          "penetration_mm": -4.05,
+          "jitter_std_mm": 0.001,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            0
+          ],
+          "penetration_mm": -4.04,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            0.015
+          ],
+          "penetration_mm": -4.13,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.02,
+            -0.015
+          ],
+          "penetration_mm": -7.56,
+          "jitter_std_mm": 0.002,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.02,
+            0
+          ],
+          "penetration_mm": -11.01,
+          "jitter_std_mm": 0.002,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.02,
+            0.015
+          ],
+          "penetration_mm": -7.26,
+          "jitter_std_mm": 0.002,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            -0.015
+          ],
+          "penetration_mm": -2.95,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            0
+          ],
+          "penetration_mm": -2.93,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            0.015
+          ],
+          "penetration_mm": -2.96,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.08,
+            -0.015
+          ],
+          "penetration_mm": -9.21,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.08,
+            0
+          ],
+          "penetration_mm": -9.19,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.08,
+            0.015
+          ],
+          "penetration_mm": -7.44,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            -0.015
+          ],
+          "penetration_mm": -8.9,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            0
+          ],
+          "penetration_mm": -8.87,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            0.015
+          ],
+          "penetration_mm": -8.06,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        }
+      ]
+    },
+    "top_1.6cm_leg_20N/old_5x16_hulls/mujoco_default": {
+      "presses": 50,
+      "max_penetration_mm": 31.33,
+      "frac_gt_2mm": 0.22,
+      "frac_gt_5mm": 0.16,
+      "max_jitter_std_mm": 1.429,
+      "contact_dims": [
+        3
+      ],
+      "per_press": [
+        {
+          "pos": [
+            -0.05,
+            -0.025
+          ],
+          "penetration_mm": 9.59,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            -0.01
+          ],
+          "penetration_mm": 1.73,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            0.0
+          ],
+          "penetration_mm": 1.52,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            0.01
+          ],
+          "penetration_mm": 1.57,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            0.025
+          ],
+          "penetration_mm": 3.56,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.03,
+            -0.025
+          ],
+          "penetration_mm": 6.49,
+          "jitter_std_mm": 0.002,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.03,
+            -0.01
+          ],
+          "penetration_mm": 1.53,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.03,
+            0.0
+          ],
+          "penetration_mm": 0.47,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.03,
+            0.01
+          ],
+          "penetration_mm": 0.61,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.03,
+            0.025
+          ],
+          "penetration_mm": 0.59,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            -0.025
+          ],
+          "penetration_mm": 2.48,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            -0.01
+          ],
+          "penetration_mm": -23.83,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            0.0
+          ],
+          "penetration_mm": -21.4,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            0.01
+          ],
+          "penetration_mm": -26.11,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            0.025
+          ],
+          "penetration_mm": 0.69,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            -0.025
+          ],
+          "penetration_mm": -0.34,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            -0.01
+          ],
+          "penetration_mm": -23.03,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            0.0
+          ],
+          "penetration_mm": -20.59,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            0.01
+          ],
+          "penetration_mm": -26.65,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            0.025
+          ],
+          "penetration_mm": -2.93,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.03,
+            -0.025
+          ],
+          "penetration_mm": 0.95,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.03,
+            -0.01
+          ],
+          "penetration_mm": 0.16,
+          "jitter_std_mm": 0.033,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.03,
+            0.0
+          ],
+          "penetration_mm": 0.18,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.03,
+            0.01
+          ],
+          "penetration_mm": 0.13,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.03,
+            0.025
+          ],
+          "penetration_mm": 0.53,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            -0.025
+          ],
+          "penetration_mm": -0.86,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            -0.01
+          ],
+          "penetration_mm": -1.27,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            0.0
+          ],
+          "penetration_mm": -1.2,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            0.01
+          ],
+          "penetration_mm": -0.45,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            0.025
+          ],
+          "penetration_mm": -1.02,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            -0.025
+          ],
+          "penetration_mm": -2.62,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            -0.01
+          ],
+          "penetration_mm": -4.36,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            0.0
+          ],
+          "penetration_mm": -4.49,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            0.01
+          ],
+          "penetration_mm": -4.05,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            0.025
+          ],
+          "penetration_mm": -3.1,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.09,
+            -0.025
+          ],
+          "penetration_mm": -1.68,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.09,
+            -0.01
+          ],
+          "penetration_mm": -4.23,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.09,
+            0.0
+          ],
+          "penetration_mm": -4.48,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.09,
+            0.01
+          ],
+          "penetration_mm": -4.15,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.09,
+            0.025
+          ],
+          "penetration_mm": -2.18,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            -0.025
+          ],
+          "penetration_mm": 4.61,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            -0.01
+          ],
+          "penetration_mm": -1.95,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            0.0
+          ],
+          "penetration_mm": -2.31,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            0.01
+          ],
+          "penetration_mm": -2.21,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            0.025
+          ],
+          "penetration_mm": 8.17,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            -0.025
+          ],
+          "penetration_mm": 31.33,
+          "jitter_std_mm": 1.429,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            -0.01
+          ],
+          "penetration_mm": 6.11,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            0.0
+          ],
+          "penetration_mm": 5.13,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            0.01
+          ],
+          "penetration_mm": 5.71,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            0.025
+          ],
+          "penetration_mm": 8.55,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        }
+      ]
+    },
+    "top_1.6cm_leg_20N/new_hulls/mujoco_default": {
+      "presses": 50,
+      "max_penetration_mm": 8.32,
+      "frac_gt_2mm": 0.06,
+      "frac_gt_5mm": 0.02,
+      "max_jitter_std_mm": 0.397,
+      "contact_dims": [
+        3
+      ],
+      "per_press": [
+        {
+          "pos": [
+            -0.05,
+            -0.025
+          ],
+          "penetration_mm": -2.03,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            -0.01
+          ],
+          "penetration_mm": -0.91,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            0.0
+          ],
+          "penetration_mm": -1.33,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            0.01
+          ],
+          "penetration_mm": -0.95,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            0.025
+          ],
+          "penetration_mm": -1.78,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.03,
+            -0.025
+          ],
+          "penetration_mm": -1.32,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.03,
+            -0.01
+          ],
+          "penetration_mm": -0.57,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.03,
+            0.0
+          ],
+          "penetration_mm": -0.55,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.03,
+            0.01
+          ],
+          "penetration_mm": -0.57,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.03,
+            0.025
+          ],
+          "penetration_mm": -2.12,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            -0.025
+          ],
+          "penetration_mm": -3.2,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            -0.01
+          ],
+          "penetration_mm": -29.12,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            0.0
+          ],
+          "penetration_mm": -28.7,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            0.01
+          ],
+          "penetration_mm": -35.21,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            0.025
+          ],
+          "penetration_mm": -8.22,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            -0.025
+          ],
+          "penetration_mm": -8.94,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            -0.01
+          ],
+          "penetration_mm": -21.24,
+          "jitter_std_mm": 0.397,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            0.0
+          ],
+          "penetration_mm": -1.32,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            0.01
+          ],
+          "penetration_mm": -31.04,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            0.025
+          ],
+          "penetration_mm": -8.08,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.03,
+            -0.025
+          ],
+          "penetration_mm": -1.26,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.03,
+            -0.01
+          ],
+          "penetration_mm": 3.84,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.03,
+            0.0
+          ],
+          "penetration_mm": 8.32,
+          "jitter_std_mm": 0.36,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.03,
+            0.01
+          ],
+          "penetration_mm": 4.0,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.03,
+            0.025
+          ],
+          "penetration_mm": -0.88,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            -0.025
+          ],
+          "penetration_mm": -2.42,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            -0.01
+          ],
+          "penetration_mm": -2.22,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            0.0
+          ],
+          "penetration_mm": -2.16,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            0.01
+          ],
+          "penetration_mm": -1.53,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            0.025
+          ],
+          "penetration_mm": -1.69,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            -0.025
+          ],
+          "penetration_mm": -5.17,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            -0.01
+          ],
+          "penetration_mm": -8.27,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            0.0
+          ],
+          "penetration_mm": -7.35,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            0.01
+          ],
+          "penetration_mm": -6.17,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            0.025
+          ],
+          "penetration_mm": -7.64,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.09,
+            -0.025
+          ],
+          "penetration_mm": -5.65,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.09,
+            -0.01
+          ],
+          "penetration_mm": -9.08,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.09,
+            0.0
+          ],
+          "penetration_mm": -8.79,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.09,
+            0.01
+          ],
+          "penetration_mm": -7.54,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.09,
+            0.025
+          ],
+          "penetration_mm": -8.34,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            -0.025
+          ],
+          "penetration_mm": -4.91,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            -0.01
+          ],
+          "penetration_mm": -7.73,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            0.0
+          ],
+          "penetration_mm": -7.69,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            0.01
+          ],
+          "penetration_mm": -6.87,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            0.025
+          ],
+          "penetration_mm": -4.77,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            -0.025
+          ],
+          "penetration_mm": -2.0,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            -0.01
+          ],
+          "penetration_mm": -2.02,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            0.0
+          ],
+          "penetration_mm": -2.85,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            0.01
+          ],
+          "penetration_mm": -2.66,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            0.025
+          ],
+          "penetration_mm": -1.95,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        }
+      ]
+    },
+    "top_1.6cm_leg_20N/new_hulls/solref_0.01_elliptic": {
+      "presses": 50,
+      "max_penetration_mm": -0.63,
+      "frac_gt_2mm": 0.0,
+      "frac_gt_5mm": 0.0,
+      "max_jitter_std_mm": 0.036,
+      "contact_dims": [
+        3
+      ],
+      "per_press": [
+        {
+          "pos": [
+            -0.05,
+            -0.025
+          ],
+          "penetration_mm": -2.63,
+          "jitter_std_mm": 0.035,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            -0.01
+          ],
+          "penetration_mm": -1.28,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            0.0
+          ],
+          "penetration_mm": -1.54,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            0.01
+          ],
+          "penetration_mm": -1.24,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            0.025
+          ],
+          "penetration_mm": -2.5,
+          "jitter_std_mm": 0.036,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.03,
+            -0.025
+          ],
+          "penetration_mm": -1.71,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.03,
+            -0.01
+          ],
+          "penetration_mm": -0.66,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.03,
+            0.0
+          ],
+          "penetration_mm": -0.63,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.03,
+            0.01
+          ],
+          "penetration_mm": -0.65,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.03,
+            0.025
+          ],
+          "penetration_mm": -2.45,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            -0.025
+          ],
+          "penetration_mm": -3.6,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            -0.01
+          ],
+          "penetration_mm": -29.67,
+          "jitter_std_mm": 0.027,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            0.0
+          ],
+          "penetration_mm": -29.32,
+          "jitter_std_mm": 0.005,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            0.01
+          ],
+          "penetration_mm": -35.47,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            0.025
+          ],
+          "penetration_mm": -8.48,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            -0.025
+          ],
+          "penetration_mm": -9.2,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            -0.01
+          ],
+          "penetration_mm": -30.14,
+          "jitter_std_mm": 0.009,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            0.0
+          ],
+          "penetration_mm": -1.4,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            0.01
+          ],
+          "penetration_mm": -31.61,
+          "jitter_std_mm": 0.007,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            0.025
+          ],
+          "penetration_mm": -8.38,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.03,
+            -0.025
+          ],
+          "penetration_mm": -1.42,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.03,
+            -0.01
+          ],
+          "penetration_mm": -1.15,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.03,
+            0.0
+          ],
+          "penetration_mm": -1.11,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.03,
+            0.01
+          ],
+          "penetration_mm": -1.14,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.03,
+            0.025
+          ],
+          "penetration_mm": -1.15,
+          "jitter_std_mm": 0.005,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            -0.025
+          ],
+          "penetration_mm": -2.73,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            -0.01
+          ],
+          "penetration_mm": -2.5,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            0.0
+          ],
+          "penetration_mm": -2.43,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            0.01
+          ],
+          "penetration_mm": -1.83,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            0.025
+          ],
+          "penetration_mm": -2.24,
+          "jitter_std_mm": 0.002,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            -0.025
+          ],
+          "penetration_mm": -11.32,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            -0.01
+          ],
+          "penetration_mm": -8.57,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            0.0
+          ],
+          "penetration_mm": -7.65,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            0.01
+          ],
+          "penetration_mm": -6.47,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            0.025
+          ],
+          "penetration_mm": -7.94,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.09,
+            -0.025
+          ],
+          "penetration_mm": -9.28,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.09,
+            -0.01
+          ],
+          "penetration_mm": -9.38,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.09,
+            0.0
+          ],
+          "penetration_mm": -9.09,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.09,
+            0.01
+          ],
+          "penetration_mm": -7.84,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.09,
+            0.025
+          ],
+          "penetration_mm": -8.64,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            -0.025
+          ],
+          "penetration_mm": -5.27,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            -0.01
+          ],
+          "penetration_mm": -8.03,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            0.0
+          ],
+          "penetration_mm": -7.99,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            0.01
+          ],
+          "penetration_mm": -7.17,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            0.025
+          ],
+          "penetration_mm": -5.17,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            -0.025
+          ],
+          "penetration_mm": -2.1,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            -0.01
+          ],
+          "penetration_mm": -2.38,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            0.0
+          ],
+          "penetration_mm": -3.17,
+          "jitter_std_mm": 0.002,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            0.01
+          ],
+          "penetration_mm": -3.14,
+          "jitter_std_mm": 0.002,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            0.025
+          ],
+          "penetration_mm": -2.03,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        }
+      ]
+    },
+    "top_1.6cm_leg_20N/new_hulls/solref_0.01_solimp_0.99_elliptic": {
+      "presses": 50,
+      "max_penetration_mm": -0.66,
+      "frac_gt_2mm": 0.0,
+      "frac_gt_5mm": 0.0,
+      "max_jitter_std_mm": 0.054,
+      "contact_dims": [
+        3
+      ],
+      "per_press": [
+        {
+          "pos": [
+            -0.05,
+            -0.025
+          ],
+          "penetration_mm": -2.93,
+          "jitter_std_mm": 0.054,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            -0.01
+          ],
+          "penetration_mm": -1.44,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            0.0
+          ],
+          "penetration_mm": -1.61,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            0.01
+          ],
+          "penetration_mm": -1.35,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            0.025
+          ],
+          "penetration_mm": -2.72,
+          "jitter_std_mm": 0.022,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.03,
+            -0.025
+          ],
+          "penetration_mm": -1.8,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.03,
+            -0.01
+          ],
+          "penetration_mm": -0.68,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.03,
+            0.0
+          ],
+          "penetration_mm": -0.66,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.03,
+            0.01
+          ],
+          "penetration_mm": -0.68,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.03,
+            0.025
+          ],
+          "penetration_mm": -2.58,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            -0.025
+          ],
+          "penetration_mm": -3.77,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            -0.01
+          ],
+          "penetration_mm": -29.96,
+          "jitter_std_mm": 0.044,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            0.0
+          ],
+          "penetration_mm": -29.45,
+          "jitter_std_mm": 0.005,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            0.01
+          ],
+          "penetration_mm": -35.57,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.01,
+            0.025
+          ],
+          "penetration_mm": -8.53,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            -0.025
+          ],
+          "penetration_mm": -9.3,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            -0.01
+          ],
+          "penetration_mm": -30.76,
+          "jitter_std_mm": 0.033,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            0.0
+          ],
+          "penetration_mm": -1.43,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            0.01
+          ],
+          "penetration_mm": -31.88,
+          "jitter_std_mm": 0.011,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            0.025
+          ],
+          "penetration_mm": -8.5,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.03,
+            -0.025
+          ],
+          "penetration_mm": -1.51,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.03,
+            -0.01
+          ],
+          "penetration_mm": -1.18,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.03,
+            0.0
+          ],
+          "penetration_mm": -1.14,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.03,
+            0.01
+          ],
+          "penetration_mm": -1.18,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.03,
+            0.025
+          ],
+          "penetration_mm": -1.35,
+          "jitter_std_mm": 0.033,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            -0.025
+          ],
+          "penetration_mm": -2.91,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            -0.01
+          ],
+          "penetration_mm": -2.61,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            0.0
+          ],
+          "penetration_mm": -2.54,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            0.01
+          ],
+          "penetration_mm": -1.94,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.05,
+            0.025
+          ],
+          "penetration_mm": -2.5,
+          "jitter_std_mm": 0.003,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            -0.025
+          ],
+          "penetration_mm": -11.47,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            -0.01
+          ],
+          "penetration_mm": -8.69,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            0.0
+          ],
+          "penetration_mm": -7.77,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            0.01
+          ],
+          "penetration_mm": -6.59,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            0.025
+          ],
+          "penetration_mm": -8.05,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.09,
+            -0.025
+          ],
+          "penetration_mm": -9.43,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.09,
+            -0.01
+          ],
+          "penetration_mm": -9.5,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.09,
+            0.0
+          ],
+          "penetration_mm": -9.2,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.09,
+            0.01
+          ],
+          "penetration_mm": -7.96,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.09,
+            0.025
+          ],
+          "penetration_mm": -8.76,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            -0.025
+          ],
+          "penetration_mm": -5.41,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            -0.01
+          ],
+          "penetration_mm": -8.15,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            0.0
+          ],
+          "penetration_mm": -8.11,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            0.01
+          ],
+          "penetration_mm": -7.28,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.11,
+            0.025
+          ],
+          "penetration_mm": -5.34,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            -0.025
+          ],
+          "penetration_mm": -2.14,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            -0.01
+          ],
+          "penetration_mm": -2.6,
+          "jitter_std_mm": 0.001,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            0.0
+          ],
+          "penetration_mm": -3.29,
+          "jitter_std_mm": 0.002,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            0.01
+          ],
+          "penetration_mm": -3.26,
+          "jitter_std_mm": 0.002,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            0.025
+          ],
+          "penetration_mm": -2.06,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        }
+      ]
+    },
+    "side_2cm_block_30N/old_5x16_hulls/mujoco_default": {
+      "presses": 25,
+      "max_penetration_mm": 19.9,
+      "frac_gt_2mm": 0.28,
+      "frac_gt_5mm": 0.08,
+      "max_jitter_std_mm": 0.004,
+      "contact_dims": [
+        3
+      ],
+      "per_press": [
+        {
+          "pos": [
+            -0.05,
+            -0.025
+          ],
+          "penetration_mm": 5.73,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            -0.012
+          ],
+          "penetration_mm": 2.4,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            0.0
+          ],
+          "penetration_mm": 0.86,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            0.012
+          ],
+          "penetration_mm": 1.93,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.02,
+            -0.025
+          ],
+          "penetration_mm": 2.04,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.02,
+            -0.012
+          ],
+          "penetration_mm": 1.75,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.02,
+            0.0
+          ],
+          "penetration_mm": 0.91,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.02,
+            0.012
+          ],
+          "penetration_mm": -0.29,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            -0.025
+          ],
+          "penetration_mm": -1.44,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            -0.012
+          ],
+          "penetration_mm": -0.32,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            0.0
+          ],
+          "penetration_mm": 0.73,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            0.012
+          ],
+          "penetration_mm": -0.4,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.04,
+            -0.025
+          ],
+          "penetration_mm": 1.76,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.04,
+            -0.012
+          ],
+          "penetration_mm": 0.9,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.04,
+            0.0
+          ],
+          "penetration_mm": -0.37,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.04,
+            0.012
+          ],
+          "penetration_mm": -0.35,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            -0.025
+          ],
+          "penetration_mm": 1.5,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            -0.012
+          ],
+          "penetration_mm": 2.14,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            0.0
+          ],
+          "penetration_mm": -0.37,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            0.012
+          ],
+          "penetration_mm": -1.4,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.1,
+            -0.025
+          ],
+          "penetration_mm": 4.01,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.1,
+            -0.012
+          ],
+          "penetration_mm": 4.13,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.1,
+            0.0
+          ],
+          "penetration_mm": -0.23,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            -0.025
+          ],
+          "penetration_mm": 1.76,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            -0.012
+          ],
+          "penetration_mm": 19.9,
+          "jitter_std_mm": 0.004,
+          "contact_dims": [
+            3
+          ]
+        }
+      ]
+    },
+    "side_2cm_block_30N/new_hulls/mujoco_default": {
+      "presses": 25,
+      "max_penetration_mm": -0.5,
+      "frac_gt_2mm": 0.0,
+      "frac_gt_5mm": 0.0,
+      "max_jitter_std_mm": 0.0,
+      "contact_dims": [
+        3
+      ],
+      "per_press": [
+        {
+          "pos": [
+            -0.05,
+            -0.025
+          ],
+          "penetration_mm": -0.95,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            -0.012
+          ],
+          "penetration_mm": -1.55,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            0.0
+          ],
+          "penetration_mm": -1.27,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            0.012
+          ],
+          "penetration_mm": -0.97,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.02,
+            -0.025
+          ],
+          "penetration_mm": -2.09,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.02,
+            -0.012
+          ],
+          "penetration_mm": -2.12,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.02,
+            0.0
+          ],
+          "penetration_mm": -1.74,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.02,
+            0.012
+          ],
+          "penetration_mm": -0.67,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            -0.025
+          ],
+          "penetration_mm": -6.42,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            -0.012
+          ],
+          "penetration_mm": -3.96,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            0.0
+          ],
+          "penetration_mm": -1.03,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            0.012
+          ],
+          "penetration_mm": -1.8,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.04,
+            -0.025
+          ],
+          "penetration_mm": -0.72,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.04,
+            -0.012
+          ],
+          "penetration_mm": -0.83,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.04,
+            0.0
+          ],
+          "penetration_mm": -1.83,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.04,
+            0.012
+          ],
+          "penetration_mm": -3.0,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            -0.025
+          ],
+          "penetration_mm": -0.5,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            -0.012
+          ],
+          "penetration_mm": -2.9,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            0.0
+          ],
+          "penetration_mm": -3.89,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            0.012
+          ],
+          "penetration_mm": -5.53,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.1,
+            -0.025
+          ],
+          "penetration_mm": -1.06,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.1,
+            -0.012
+          ],
+          "penetration_mm": -1.61,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.1,
+            0.0
+          ],
+          "penetration_mm": -5.74,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            -0.025
+          ],
+          "penetration_mm": -1.02,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            -0.012
+          ],
+          "penetration_mm": -1.26,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        }
+      ]
+    },
+    "side_2cm_block_30N/new_hulls/solref_0.01_elliptic": {
+      "presses": 25,
+      "max_penetration_mm": -0.62,
+      "frac_gt_2mm": 0.0,
+      "frac_gt_5mm": 0.0,
+      "max_jitter_std_mm": 0.0,
+      "contact_dims": [
+        3
+      ],
+      "per_press": [
+        {
+          "pos": [
+            -0.05,
+            -0.025
+          ],
+          "penetration_mm": -1.07,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            -0.012
+          ],
+          "penetration_mm": -1.67,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            0.0
+          ],
+          "penetration_mm": -1.49,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            0.012
+          ],
+          "penetration_mm": -1.4,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.02,
+            -0.025
+          ],
+          "penetration_mm": -2.59,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.02,
+            -0.012
+          ],
+          "penetration_mm": -2.44,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.02,
+            0.0
+          ],
+          "penetration_mm": -2.07,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.02,
+            0.012
+          ],
+          "penetration_mm": -1.01,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            -0.025
+          ],
+          "penetration_mm": -6.74,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            -0.012
+          ],
+          "penetration_mm": -4.29,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            0.0
+          ],
+          "penetration_mm": -1.33,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            0.012
+          ],
+          "penetration_mm": -2.02,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.04,
+            -0.025
+          ],
+          "penetration_mm": -0.84,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.04,
+            -0.012
+          ],
+          "penetration_mm": -1.17,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.04,
+            0.0
+          ],
+          "penetration_mm": -1.98,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.04,
+            0.012
+          ],
+          "penetration_mm": -3.23,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            -0.025
+          ],
+          "penetration_mm": -0.62,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            -0.012
+          ],
+          "penetration_mm": -3.02,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            0.0
+          ],
+          "penetration_mm": -4.01,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            0.012
+          ],
+          "penetration_mm": -5.98,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.1,
+            -0.025
+          ],
+          "penetration_mm": -1.18,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.1,
+            -0.012
+          ],
+          "penetration_mm": -2.06,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.1,
+            0.0
+          ],
+          "penetration_mm": -5.97,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            -0.025
+          ],
+          "penetration_mm": -1.42,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            -0.012
+          ],
+          "penetration_mm": -1.69,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        }
+      ]
+    },
+    "side_2cm_block_30N/new_hulls/solref_0.01_solimp_0.99_elliptic": {
+      "presses": 25,
+      "max_penetration_mm": -0.66,
+      "frac_gt_2mm": 0.0,
+      "frac_gt_5mm": 0.0,
+      "max_jitter_std_mm": 0.0,
+      "contact_dims": [
+        3
+      ],
+      "per_press": [
+        {
+          "pos": [
+            -0.05,
+            -0.025
+          ],
+          "penetration_mm": -1.11,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            -0.012
+          ],
+          "penetration_mm": -1.71,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            0.0
+          ],
+          "penetration_mm": -1.62,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.05,
+            0.012
+          ],
+          "penetration_mm": -1.62,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.02,
+            -0.025
+          ],
+          "penetration_mm": -2.7,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.02,
+            -0.012
+          ],
+          "penetration_mm": -2.66,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.02,
+            0.0
+          ],
+          "penetration_mm": -2.22,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            -0.02,
+            0.012
+          ],
+          "penetration_mm": -1.16,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            -0.025
+          ],
+          "penetration_mm": -6.89,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            -0.012
+          ],
+          "penetration_mm": -4.44,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            0.0
+          ],
+          "penetration_mm": -1.4,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.01,
+            0.012
+          ],
+          "penetration_mm": -2.1,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.04,
+            -0.025
+          ],
+          "penetration_mm": -0.88,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.04,
+            -0.012
+          ],
+          "penetration_mm": -1.32,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.04,
+            0.0
+          ],
+          "penetration_mm": -2.03,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.04,
+            0.012
+          ],
+          "penetration_mm": -3.31,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            -0.025
+          ],
+          "penetration_mm": -0.66,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            -0.012
+          ],
+          "penetration_mm": -3.06,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            0.0
+          ],
+          "penetration_mm": -4.05,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.07,
+            0.012
+          ],
+          "penetration_mm": -6.22,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.1,
+            -0.025
+          ],
+          "penetration_mm": -1.22,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.1,
+            -0.012
+          ],
+          "penetration_mm": -2.3,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.1,
+            0.0
+          ],
+          "penetration_mm": -6.14,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            -0.025
+          ],
+          "penetration_mm": -1.5,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        },
+        {
+          "pos": [
+            0.13,
+            -0.012
+          ],
+          "penetration_mm": -1.9,
+          "jitter_std_mm": 0.0,
+          "contact_dims": [
+            3
+          ]
+        }
+      ]
+    }
+  }
+}
