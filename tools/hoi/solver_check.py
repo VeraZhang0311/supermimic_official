@@ -61,13 +61,22 @@ def main() -> None:
   ap.add_argument("--ref-iterations", type=int, default=200)
   ap.add_argument("--cone", choices=("pyramidal", "elliptic"), default=None)
   ap.add_argument("--impratio", type=float, default=None)
+  ap.add_argument("--tolerance", type=float, default=None)
+  ap.add_argument("--ccd-iterations", type=int, default=None)
+  ap.add_argument("--njmax", type=int, default=None)
+  ap.add_argument("--nconmax", type=int, default=None)
   ap.add_argument("--robot-only", action="store_true")
   args = ap.parse_args()
 
   cfg = gencoord_env_cfg() if args.robot_only else hoi_env_cfg()
   opts = {k: v for k, v in (("iterations", args.iterations), ("ls_iterations", args.ls_iterations),
-                            ("cone", args.cone), ("impratio", args.impratio)) if v is not None}
+                            ("cone", args.cone), ("impratio", args.impratio), ("tolerance", args.tolerance),
+                            ("ccd_iterations", args.ccd_iterations)) if v is not None}
   cfg.sim.mujoco = dataclasses.replace(cfg.sim.mujoco, **opts)
+  if args.njmax is not None:
+    cfg.sim.njmax = args.njmax
+  if args.nconmax is not None:
+    cfg.sim.nconmax = args.nconmax
   if args.robot_only:
     cfg.commands["motion"].motion_file = args.library
   else:
@@ -78,7 +87,8 @@ def main() -> None:
   mj = cfg.sim.mujoco
   label = "robot-only" if args.robot_only else "hoi"
   print(f"=== {label}: iterations {mj.iterations} ls_iterations {mj.ls_iterations} cone {mj.cone} "
-        f"impratio {mj.impratio} tolerance {mj.tolerance} timestep {mj.timestep}", flush=True)
+        f"impratio {mj.impratio} tolerance {mj.tolerance} ccd_iterations {mj.ccd_iterations} "
+        f"njmax {cfg.sim.njmax} nconmax {cfg.sim.nconmax} worlds {args.num_envs}", flush=True)
 
   env = RslRlVecEnvWrapper(ManagerBasedRlEnv(cfg=cfg, device="cuda:0"))
   raw = env.unwrapped
@@ -96,12 +106,15 @@ def main() -> None:
   root_v = raw.scene["robot"].indexing.free_joint_v_adr.long()
   overflow = wp.to_torch(d.overflow)
   nefc = wp.to_torch(d.nefc)
+  nacon = wp.to_torch(d.nacon)
+  niter = wp.to_torch(d.solver_niter)
   dt = mj.timestep
   term_names = list(raw.termination_manager.active_terms)
   counts = {n: 0 for n in term_names}
   env.reset()
 
   hit_steps, ls_steps, nefc_all, held_all, variant_all = [], [], [], [], []
+  ncon_all, niter_all, other_flags = [], [], 0
   probes = {"rel": [], "hit": [], "obj_dv": [], "root_dv": [], "ref_hit": 0, "n": 0}
   step_time = 0.0
   for t in range(1, args.steps + 1):
@@ -129,6 +142,11 @@ def main() -> None:
     torch.cuda.synchronize()
     step_time += time.perf_counter() - t0
     flags = overflow.clone()
+    for b in range(16):
+      if bool(((flags >> b) & 1).any()):
+        other_flags |= 1 << b
+    ncon_all.append(int(nacon[0]))
+    niter_all.append(niter.clone())
     hit_steps.append((flags & ITER) != 0)
     ls_steps.append((flags & LS) != 0)
     nefc_all.append(nefc.clone())
@@ -142,6 +160,11 @@ def main() -> None:
   ls = torch.stack(ls_steps)
   ne = torch.stack(nefc_all)
   print(f"step time {1000 * step_time / args.steps:.1f} ms per env step ({args.num_envs} worlds)")
+  it = torch.stack(niter_all).float()
+  print(f"nefc per world: max {int(ne.max())}, p99.9 {float(torch.quantile(ne.float().flatten()[::7], 0.999)):.0f}, mean {float(ne.float().mean()):.0f}; "
+        f"contacts per world: mean {sum(ncon_all) / len(ncon_all) / args.num_envs:.1f}, max step {max(ncon_all) / args.num_envs:.1f}")
+  print(f"solver iterations (last substep): mean {float(it.mean()):.1f}, batch max per step mean {float(it.max(1).values.mean()):.1f}")
+  print(f"overflow bits seen (other than iteration caps): {hex(other_flags & ~(ITER | LS))}")
   print(f"world-steps hitting the iteration cap in any substep: {hit.float().mean():.1%}; "
         f"linesearch cap: {ls.float().mean():.1%}")
   print(f"nefc p50/p90/p99 when capped {q(ne[hit])}, otherwise {q(ne[~hit])}")

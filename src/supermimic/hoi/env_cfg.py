@@ -46,8 +46,11 @@ def hoi_env_cfg(play: bool = False, task: HoiTaskCfg | None = None) -> ManagerBa
   # at the official 10, ~4% of substeps stop unconverged, mostly while holding the
   # object; at 20 none do, for ~2% more step time (tools/hoi/solver_check.py).
   cfg.sim.mujoco = dataclasses.replace(cfg.sim.mujoco, cone="elliptic", impratio=10, iterations=20)
-  cfg.sim.nconmax = 400
-  cfg.sim.njmax = 1500
+  # Measured at 4096 worlds: ~17 contacts per world (pooled across worlds, peak
+  # step mean 22) and <= 465 constraint rows in any world (mean 53). Larger
+  # buffers only add idle threads to the solver kernels.
+  cfg.sim.nconmax = 64
+  cfg.sim.njmax = 800
   # SuperMimic drops the self-collision reward; its contact sensor only costs time.
   cfg.scene.sensors = tuple(s for s in cfg.scene.sensors if s.name != "self_collision")
 
@@ -56,6 +59,7 @@ def hoi_env_cfg(play: bool = False, task: HoiTaskCfg | None = None) -> ManagerBa
     func=mdp.activate_object_variants,
     params={"entity_name": "object", "mass_scale_range": (0.5, 1.5)},
   )
+  cfg.events["quiet_linesearch_warnings"] = EventTermCfg(mode="startup", func=mdp.quiet_linesearch_warnings)
 
   full = cfg.observations["full_state"].terms
   full["object_state"] = ObservationTermCfg(func=mdp.object_state_w)

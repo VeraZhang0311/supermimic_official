@@ -185,7 +185,7 @@ def resolve_auto_cfg(cfg: SuperMimicRunnerCfg, hoi: bool) -> SuperMimicRunnerCfg
     cfg.wm_warmup_updates = 500 if hoi else 0
   policy = dataclasses.replace(cfg.policy)
   if policy.grad_accum_chunks == 0:
-    policy.grad_accum_chunks = 4 if hoi else 1
+    policy.grad_accum_chunks = 2 if hoi else 1  # HOI at 4096 envs: 39.5 GB on an L40; 1 chunk OOMs
   if policy.ema_decay < 0:
     policy.ema_decay = 0.999 if hoi else 0.0
   cfg.policy = policy
@@ -561,7 +561,7 @@ class SuperMimicRunner:
       # Pre-step frames; env.step() advances time_steps in place.
       motion_times = self.motion_cmd.time_steps.to(self.device).clone()
 
-      rep_state = self._representation.represent(curr_states)
+      rep_state = self.world_model_learner.represent(curr_states)
       aux_state = self._representation.extract_aux_state(curr_states)
       sim_ctx = self._sim_context.read(self.env.unwrapped)
       actor_td = self._build_sim_obs_td(
@@ -672,6 +672,7 @@ class SuperMimicRunner:
           policy_learn_time=policy_learn_time,
           loss_dict=loss_dict,
           num_collected_steps=num_collected_steps,
+          extra_row=self.motion_cmd.log_stats() if hasattr(self.motion_cmd, "log_stats") else None,
         )
 
         log_count += 1

@@ -20,9 +20,11 @@ from mjlab.tasks.tracking.mdp.commands import MotionCommand, MotionCommandCfg
 from mjlab.utils.forward_kinematics import ForwardKinematics
 from mjlab.utils.lab_api.math import quat_apply, quat_apply_inverse, sample_uniform
 
+from supermimic.hoi import OBJECT_TYPES
 from supermimic.hoi.assets import OBJECT, OBJECT_FLOOR
 from supermimic.hoi.geometry import object_clearance, sdf_query
 from supermimic.hoi.library import HoiLibrary, assign_world_variants, read_variants
+from supermimic.hoi.stats import ObjectStats
 
 FLOOR_CLEARANCE = 0.001
 """Gap left under the object at reset when its reference pose sinks into the floor."""
@@ -141,6 +143,12 @@ class HoiMotionCommand(MotionCommand):
     self._external_probs = torch.full((self.bin_count,), 1.0 / self.bin_count, device=self.device)
     self.metrics["object_pos_error"] = torch.zeros(self.num_envs, device=self.device)
     self.metrics["object_ori_error"] = torch.zeros(self.num_envs, device=self.device)
+    # Per-object statistics: one row per object type present in the library.
+    present = sorted(set(self.lib.variant_type.tolist()))
+    slot = torch.full((len(OBJECT_TYPES),), -1, dtype=torch.long, device=self.device)
+    slot[present] = torch.arange(len(present), device=self.device)
+    self._world_slot = slot[self.world_type]
+    self.stats = ObjectStats([OBJECT_TYPES[t] for t in present], self.device)
 
   # -- reset frames ---------------------------------------------------------------
 
@@ -244,6 +252,39 @@ class HoiMotionCommand(MotionCommand):
       dim=-1,
     )
     self.object.write_root_state_to_sim(state, env_ids=env_ids)
+
+  # -- statistics ----------------------------------------------------------------
+
+  def compute(self, dt, env_ids=None):
+    super().compute(dt, env_ids)
+    if env_ids is None:  # the once-per-env-step call, after that step's resets
+      m = self.metrics
+      self.stats.add_steps(
+        self._world_slot, torch.stack([m["object_pos_error"], m["object_ori_error"], m["error_body_pos"]], dim=-1)
+      )
+
+  def reset(self, env_ids):
+    """Count how each finished episode ended (before the base reset clears it)."""
+    if isinstance(env_ids, torch.Tensor) and env_ids.numel() > 0:
+      length = self._env.episode_length_buf[env_ids]
+      ended = length > 0  # the first reset of a run finishes no episode
+      if bool(ended.any()):
+        ids = env_ids[ended]
+        tm = self._env.termination_manager
+        none = torch.zeros(len(ids), dtype=torch.bool, device=self.device)
+
+        def term(name: str) -> torch.Tensor:
+          return tm.get_term(name)[ids].bool() if name in tm.active_terms else none
+
+        complete = term("motion_end") | term("time_out")
+        bad = term("bad_object") & ~complete
+        fall = (term("anchor_pos") | term("anchor_ori")) & ~complete & ~bad
+        self.stats.add_episodes(self._world_slot[ids], length[ended], torch.stack([complete, bad, fall], dim=-1))
+    return super().reset(env_ids)
+
+  def log_stats(self) -> dict[str, float]:
+    """``HOI/<object>/...`` since the last call; the runner logs it to W&B."""
+    return self.stats.summary(self._env.step_dt)
 
   def _update_metrics(self):
     super()._update_metrics()

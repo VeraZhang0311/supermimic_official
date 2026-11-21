@@ -30,7 +30,35 @@ def _command(env: ManagerBasedRlEnv, name: str = "motion") -> HoiMotionCommand:
   return cast(HoiMotionCommand, env.command_manager.get_term(name))
 
 
+_COMPILED: dict[str, object] = {}
+
+
+def _on_device(fn, device: str):
+  """``fn`` compiled once for CUDA (eager, these terms launch hundreds of tiny
+  kernels per env step); as is on CPU."""
+  if not str(device).startswith("cuda"):
+    return fn
+  if fn.__name__ not in _COMPILED:
+    _COMPILED[fn.__name__] = torch.compile(fn)
+  return _COMPILED[fn.__name__]
+
+
 # --------------------------------------------------------------------- startup
+
+
+def quiet_linesearch_warnings(env: ManagerBasedRlEnv, env_ids: torch.Tensor | None) -> None:
+  """Stop mjwarp printing a line per world whose Newton linesearch hits its cap.
+
+  With elliptic friction ~1.5% of world-steps do; the solve still converges
+  (``tools/hoi/solver_check.py``), but at 4096 worlds the printout grows the
+  job log by GBs over a run. The solver iteration-cap warning stays on.
+  """
+  from mujoco_warp._src.types import OverflowType
+
+  del env_ids
+  opt = env.sim.wp_model.opt
+  opt.warn_overflow = int(opt.warn_overflow) & ~int(OverflowType.LS_ITERATIONS)
+  env.sim.create_graph()  # the flag is compiled into the solver kernels
 
 
 @requires_model_fields("geom_pos", "body_mass", "body_inertia", "body_ipos", "body_iquat")
@@ -92,7 +120,7 @@ def hoi_goal_obs(env: ManagerBasedRlEnv, command_name: str = "motion") -> torch.
   cmd = _command(env, command_name)
   origins = env.scene.env_origins
   d = cmd.object.data
-  return hoi_goal(
+  return _on_device(hoi_goal, env.device)(
     cmd.motion,
     cmd.lib,
     cmd.time_steps,
@@ -104,6 +132,23 @@ def hoi_goal_obs(env: ManagerBasedRlEnv, command_name: str = "motion") -> torch.
 
 
 # ------------------------------------------------------- rewards / terminations
+
+
+def _step_values(
+  task, lib, probes, radii, variant, wrist_pos, wrist_quat, obj_pos, obj_quat, obj_lin, obj_ang,
+  anchor_pos, anchor_quat, ref_obj_pos, ref_obj_quat, ref_obj_lin, ref_obj_ang, ref_wrist_pos,
+  ref_anchor_pos, ref_anchor_quat, contact,
+) -> dict[str, torch.Tensor]:
+  gap, _ = hand_object_features(lib, probes, radii, variant, wrist_pos, wrist_quat, obj_pos, obj_quat, anchor_quat)
+  values = terms.hoi_reward_terms(
+    task, obj_pos, obj_quat, obj_lin, obj_ang, ref_obj_pos, ref_obj_quat, ref_obj_lin, ref_obj_ang,
+    wrist_pos, ref_wrist_pos, gap, contact,
+  )
+  values["termination"] = terms.object_termination_errors(
+    task, anchor_pos, anchor_quat, obj_pos, obj_quat, ref_anchor_pos, ref_anchor_quat,
+    ref_obj_pos, ref_obj_quat, contact,
+  )
+  return values
 
 
 class _StepTerms:
@@ -123,23 +168,13 @@ class _StepTerms:
       return self.values
     cmd = _command(self.env, self.command_name)
     robot, d = cmd.robot, cmd.object.data
-    wrist_pos = robot.data.body_link_pos_w[:, self.wrist_ids]
-    wrist_quat = robot.data.body_link_quat_w[:, self.wrist_ids]
-    gap, _ = hand_object_features(
-      cmd.lib, self.probes, self.radii, cmd.world_variant, wrist_pos, wrist_quat,
-      d.root_link_pos_w, d.root_link_quat_w, cmd.robot_anchor_quat_w,
-    )
-    contact = cmd.ref_hand_contact
-    values = terms.hoi_reward_terms(
-      self.task,
+    values = _on_device(_step_values, self.env.device)(
+      self.task, cmd.lib, self.probes, self.radii, cmd.world_variant,
+      robot.data.body_link_pos_w[:, self.wrist_ids], robot.data.body_link_quat_w[:, self.wrist_ids],
       d.root_link_pos_w, d.root_link_quat_w, d.root_link_lin_vel_w, d.root_link_ang_vel_w,
+      cmd.robot_anchor_pos_w, cmd.robot_anchor_quat_w,
       cmd.ref_object_pos_w, cmd.ref_object_quat_w, cmd.ref_object_lin_vel_w, cmd.ref_object_ang_vel_w,
-      wrist_pos, cmd.body_pos_w[:, self.ref_wrist_idx], gap, contact,
-    )
-    values["termination"] = terms.object_termination_errors(
-      self.task,
-      cmd.robot_anchor_pos_w, cmd.robot_anchor_quat_w, d.root_link_pos_w, d.root_link_quat_w,
-      cmd.anchor_pos_w, cmd.anchor_quat_w, cmd.ref_object_pos_w, cmd.ref_object_quat_w, contact,
+      cmd.body_pos_w[:, self.ref_wrist_idx], cmd.anchor_pos_w, cmd.anchor_quat_w, cmd.ref_hand_contact,
     )
     self.values, self.step = values, self.env.common_step_counter
     return values

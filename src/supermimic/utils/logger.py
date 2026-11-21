@@ -8,6 +8,13 @@ import torch
 import wandb
 
 
+def _duration(seconds: float) -> str:
+  """``H:MM:SS``, with whole days in front once there are any."""
+  days, rest = divmod(int(seconds), 86400)
+  clock = time.strftime("%H:%M:%S", time.gmtime(rest))
+  return f"{days}d {clock}" if days else clock
+
+
 class Logger:
   """Episode statistics of the real env, logged as one W&B row and one console
   block per log call."""
@@ -154,7 +161,9 @@ class Logger:
     num_collected_steps: int,
     width: int = 80,
     pad: int = 40,
+    extra_row: dict[str, float] | None = None,
   ) -> None:
+    """``extra_row`` goes to W&B only (it can be long, e.g. per-object stats)."""
     iteration_time = collect_time + wm_learn_time + policy_learn_time
     self.tot_timesteps += num_collected_steps
     self.tot_time += iteration_time
@@ -177,6 +186,7 @@ class Logger:
       row["Train/mean_reward"] = statistics.mean(self.rewbuffer)
       row["Train/mean_episode_length"] = statistics.mean(self.lenbuffer)
     row |= {k if "/" in k else f"Episode/{k}": v for k, v in extras.items()}
+    row |= extra_row or {}
     wandb.log(row, step=it)
     print(
       self._build_console_log(

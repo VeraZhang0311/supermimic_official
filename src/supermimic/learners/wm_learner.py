@@ -79,6 +79,13 @@ class WorldModelLearner:
       lambda: graph_state([dynamics, representation], self.optimizers),
     )
 
+  def represent(self, states: torch.Tensor) -> torch.Tensor:
+    """``representation.represent``, compiled on CUDA: eager, the HOI
+    representation (FK, SDF, clearance) costs tens of ms per collection step."""
+    if states.is_cuda:
+      return self._compiled_represent(states)
+    return self.representation.represent(states)
+
   def update_normalization(self, states: torch.Tensor, actions: torch.Tensor) -> None:
     """Update the dynamics state/action normalizers from fresh collected data.
 
@@ -86,7 +93,7 @@ class WorldModelLearner:
     action normalizer sees proc (matching what ``forward`` feeds the MLP after
     ``Dynamics.proc``).
     """
-    rep_states = self.representation.represent(states)
+    rep_states = self.represent(states)
     rep_states_flat = rep_states.reshape(-1, rep_states.shape[-1])
     actions_flat = actions.reshape(-1, actions.shape[-1])
 

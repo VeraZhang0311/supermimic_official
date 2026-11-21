@@ -177,3 +177,31 @@ class TestRepresentation:
     assert torch.allclose(nf[:, 71 + 7 : 71 + 10], obj_v, atol=1e-4)
     assert torch.equal(next_aux[:, 14], aux[:, 14])
     assert torch.allclose(rep.represent(nf), next_rep, atol=1e-4)
+
+
+def test_object_stats_split_by_type_and_reset_after_summary():
+  from supermimic.hoi.stats import ObjectStats
+
+  stats = ObjectStats(["largebox", "whitechair"], "cpu")
+  types = torch.tensor([0, 0, 1])
+  stats.add_steps(types, torch.tensor([[0.1, 0.2, 0.3], [0.3, 0.4, 0.5], [1.0, 1.0, 1.0]]))
+  stats.add_steps(types, torch.tensor([[0.1, 0.2, 0.3], [0.3, 0.4, 0.5], [3.0, 3.0, 3.0]]))
+  outcomes = torch.tensor([[True, False, False], [False, True, False]])
+  stats.add_episodes(torch.tensor([0, 0]), torch.tensor([100, 50]), outcomes)
+  out = stats.summary(step_dt=0.02)
+  assert out["HOI/largebox/object_pos_error"] == pytest.approx(0.2)
+  assert out["HOI/whitechair/object_pos_error"] == pytest.approx(2.0)
+  assert out["HOI/largebox/episodes"] == 2
+  assert out["HOI/largebox/episode_length_s"] == pytest.approx(1.5)
+  assert out["HOI/largebox/complete_rate"] == pytest.approx(0.5)
+  assert out["HOI/largebox/bad_object_rate"] == pytest.approx(0.5)
+  assert out["HOI/whitechair/episodes"] == 0
+  assert "HOI/whitechair/complete_rate" not in out  # no finished episode yet
+  assert stats.summary(step_dt=0.02) == {"HOI/largebox/episodes": 0.0, "HOI/whitechair/episodes": 0.0}
+
+
+def test_logger_duration_shows_days():
+  from supermimic.utils.logger import _duration
+
+  assert _duration(3725) == "01:02:05"
+  assert _duration(2 * 86400 + 61) == "2d 00:01:01"
