@@ -43,7 +43,11 @@ class ReturnSampler:
     num_envs: int,
     max_step_reward: float,
     device: str = "cpu",
+    frame_bins: torch.Tensor | None = None,
   ) -> None:
+    """``frame_bins`` maps each global frame to its bin when bins do not cut
+    one shared timeline evenly (HOI: per-clip bins)."""
+    self._frame_bins = frame_bins
     assert 0.0 < cfg.gamma < 1.0, f"gamma must be in (0, 1), got {cfg.gamma}"
     assert cfg.explore + cfg.keep < 1.0, "explore + keep must leave room for focus"
     self.cfg = cfg
@@ -65,6 +69,8 @@ class ReturnSampler:
 
   def _bins(self, frames: torch.Tensor) -> torch.Tensor:
     """Frame -> bin, as the motion command bins its adaptive-sampling failures."""
+    if self._frame_bins is not None:
+      return self._frame_bins[frames]
     return frames * self.bin_count // self.frame_count
 
   def record(

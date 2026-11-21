@@ -137,7 +137,9 @@ class WorldModelEnv:
     if self.history_length > 1:
       history = torch.cat([self._past_sensors, history], dim=1)
     critic = torch.cat([self.rep_state, self._wm_goal_obs, self.sim_ctx], dim=-1)
-    return build_actor_obs_td(self._task_goal_obs, history, critic)
+    cols = self.representation.context_columns
+    context = None if cols is None else self.sim_ctx[:, cols]
+    return build_actor_obs_td(self._task_goal_obs, history, critic, context=context)
 
   def _wm_step(
     self,
@@ -173,6 +175,7 @@ class WorldModelEnv:
       ref_body_quat_w,
       ref_body_lin_vel_w,
       ref_body_ang_vel_w,
+      motion_times=self.motion_times,
     )
     return next_aux_state, next_rep_state, next_joint_state, term_prob, reward
 
@@ -182,7 +185,8 @@ class WorldModelEnv:
     ref_body_pos_w: torch.Tensor,
     ref_body_quat_w: torch.Tensor,
   ) -> torch.Tensor:
-    """Soft termination from the real threshold rules."""
+    """Soft termination from the real threshold rules (plus any the
+    representation adds, e.g. the HOI object rules)."""
     anchor_pos_w = ref_body_pos_w[:, self._anchor_index]
     anchor_quat_w = ref_body_quat_w[:, self._anchor_index]
     root_pos, root_quat = aux_state[..., :3], aux_state[..., 3:7]
@@ -195,6 +199,16 @@ class WorldModelEnv:
       height_error / self._anchor_pos_threshold,
       tilt_error / self._anchor_ori_threshold,
     )
+    motion_times = getattr(self, "motion_times", None)
+    extra = (
+      None
+      if motion_times is None
+      else self.representation.extra_termination_errors(
+        aux_state, anchor_pos_w, anchor_quat_w, motion_times
+      )
+    )
+    if extra is not None:
+      normalized_error = torch.maximum(normalized_error, extra.max(dim=-1).values)
     return torch.sigmoid((normalized_error - 1.0) / self._termination_softness)
 
   def _compute_commands(self) -> None:

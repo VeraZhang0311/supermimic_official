@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import re
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
@@ -153,6 +154,54 @@ class EncoderBiasSpec(SimContextSpec):
     return env.scene[self._asset_name].data.encoder_bias
 
 
+class ObjectIdentitySpec(SimContextSpec):
+  """HOI object type one-hot plus log size scale of each world's object variant."""
+
+  name = "object_identity"
+  dim = 0  # set in bind()
+
+  def bind(self, env: ManagerBasedRlEnv) -> list[tuple[float, float]]:
+    from supermimic.hoi import OBJECT_TYPES
+    from supermimic.hoi.command import library_root
+    from supermimic.hoi.library import read_variants
+
+    variants = read_variants(library_root(env))
+    log_scale = [math.log(v.scale) for v in variants]
+    self.dim = len(OBJECT_TYPES) + 1
+    self._type = torch.tensor([v.type_id for v in variants], device=env.device)
+    self._log_scale = torch.tensor(log_scale, dtype=torch.float32, device=env.device)
+    self._num_types = len(OBJECT_TYPES)
+    return [(0.0, 1.0)] * self._num_types + [(min(log_scale), max(log_scale))]
+
+  def read(self, env: ManagerBasedRlEnv) -> torch.Tensor:
+    from supermimic.hoi.command import world_variants
+
+    wv = world_variants(env)
+    onehot = torch.nn.functional.one_hot(self._type[wv], self._num_types).float()
+    return torch.cat([onehot, self._log_scale[wv][:, None]], dim=-1)
+
+
+class ObjectMassSpec(SimContextSpec):
+  """Log of each world's (randomized) object mass."""
+
+  name = "object_mass"
+  dim = 1
+
+  def bind(self, env: ManagerBasedRlEnv) -> list[tuple[float, float]]:
+    from supermimic.hoi.command import library_root
+    from supermimic.hoi.library import read_variants
+
+    event = env.cfg.events["object_variant"]
+    lo, hi = event.params["mass_scale_range"]
+    masses = [v.mass for v in read_variants(library_root(env))]
+    obj = env.scene[event.params["entity_name"]]
+    self._body = int(obj.indexing.body_ids[0])
+    return [(math.log(min(masses) * lo), math.log(max(masses) * hi))]
+
+  def read(self, env: ManagerBasedRlEnv) -> torch.Tensor:
+    return torch.log(env.sim.model.body_mass[:, self._body : self._body + 1])
+
+
 class SimContext(nn.Module):
   def __init__(self, specs: list[SimContextSpec], ranges: list[tuple[float, float]]):
     super().__init__()
@@ -174,6 +223,8 @@ class SimContext(nn.Module):
       EncoderBiasSpec,
     )
     specs = [c() for c in candidates if c.name in env.cfg.events]
+    if "object_variant" in env.cfg.events:
+      specs += [ObjectIdentitySpec(), ObjectMassSpec()]
     if not specs:
       raise RuntimeError(
         "No sim_ctx specs derived from env.cfg.events. "

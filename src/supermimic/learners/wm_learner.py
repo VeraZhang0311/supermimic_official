@@ -36,6 +36,10 @@ class WorldModelLearnerCfg:
   nominal_error_joint_pos: float = 0.1
   nominal_error_joint_vel: float = 3.14
 
+  # Loss Weights — HOI object (hoi_gencoord representation)
+  nominal_error_object_pos: float = 0.01
+  nominal_error_object_ori: float = 0.03
+
   # Loss Weights — maxcoord representation
   nominal_error_body_pos: float = 0.05
   nominal_error_body_rot: float = 0.1

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass
 
 import torch
@@ -27,6 +28,12 @@ class BpttPolicyLearnerCfg:
   survival_masking: bool = True
   beta2: float = 0.95  # faster Adam EMA recovery after gradient spikes
   grad_clip_value: float = 0.1  # per-parameter gradient element clipping
+  grad_accum_chunks: int = 0
+  """Imagine the batch in this many chunks and step once on the summed gradient
+  (same update, less memory). 0 = auto: 4 for HOI, 1 otherwise."""
+  ema_decay: float = -1.0
+  """Decay of an EMA copy of the actor used for evaluation and export, per policy
+  update; training never reads it. 0 disables; -1 = auto: 0.999 for HOI, 0 otherwise."""
 
 
 @dataclass
@@ -78,6 +85,9 @@ class BpttPolicyLearner:
       torch.compile(self.actor) if torch.device(device).type == "cuda" else self.actor
     )
     self._captured_update = CapturedUpdate(self._update_from, self._graph_state)
+    self.ema_actor: nn.Module | None = None
+    if cfg.ema_decay > 0:
+      self.ema_actor = copy.deepcopy(policy).eval().requires_grad_(False)
 
   def update(self) -> dict[str, torch.Tensor]:
     self.actor.train()
@@ -85,7 +95,18 @@ class BpttPolicyLearner:
       module.eval()
       module.requires_grad_(False)
     starts = [self.wm_env.sample_initial_states() for _ in range(self.cfg.num_batches)]
-    return self._captured_update(torch.stack(starts))
+    logs = self._captured_update(torch.stack(starts))
+    self._update_ema()
+    return logs
+
+  @torch.no_grad()
+  def _update_ema(self) -> None:
+    if self.ema_actor is None:
+      return
+    ema_params = list(self.ema_actor.parameters())
+    torch._foreach_lerp_(ema_params, list(self.actor.parameters()), 1.0 - self.cfg.ema_decay)
+    for ema_buf, buf in zip(self.ema_actor.buffers(), self.actor.buffers(), strict=True):
+      ema_buf.copy_(buf)
 
   def _update_from(self, starts: TensorDict) -> dict[str, torch.Tensor]:
     totals: dict[str, torch.Tensor] = {}
@@ -96,8 +117,11 @@ class BpttPolicyLearner:
     reward = totals.pop("return") / self.cfg.horizon / n / self.wm_env.representation.dt
     return {"Policy/reward": reward} | {f"Policy/{k}": v / n for k, v in totals.items()}
 
-  def _train_batch(self, start: TensorDict) -> dict[str, torch.Tensor]:
-    """Imagine one rollout from ``start`` and take one actor step on its return."""
+  def _imagine(
+    self, start: TensorDict
+  ) -> tuple[torch.Tensor, torch.Tensor, list[TensorDict], TensorDict]:
+    """One imagined rollout from ``start``: its return (with gradient), the
+    actor's auxiliary loss, the detached steps for the critic and the last obs."""
     cfg = self.cfg
     obs = self.wm_env.reset(start)
     ret, aux_loss, survival = 0.0, 0.0, 1.0
@@ -113,12 +137,36 @@ class BpttPolicyLearner:
         survival = survival * (1 - term_prob)
       obs = next_obs
     ret = ret + self._bootstrap(obs, survival, term_prob)
-    loss = (-ret + aux_loss).mean()
-    grad_norm = _optimize_step(
-      self.actor_optimizers, loss, self.actor_params, 1.0, cfg.grad_clip_value
-    )
+    return ret, aux_loss, rollout, obs
+
+  def _train_batch(self, start: TensorDict) -> dict[str, torch.Tensor]:
+    """Imagine rollouts from ``start`` (in chunks) and take one actor step on
+    the batch-mean return."""
+    cfg = self.cfg
+    total = start.shape[0]
+    chunks = max(1, cfg.grad_accum_chunks)
+    size = -(-total // chunks)
+    for optimizer in self.actor_optimizers:
+      optimizer.zero_grad(set_to_none=True)
+    returns, rollouts, last_obs = [], [], []
+    for lo in range(0, total, size):
+      ret, aux_loss, rollout, obs = self._imagine(start[lo : lo + size])
+      ((-ret + aux_loss).sum() / total).backward()
+      returns.append(ret.detach())
+      rollouts.append(rollout)
+      last_obs.append(obs.detach())
+    grad_norm = torch.nn.utils.clip_grad_norm_(self.actor_params, max_norm=1.0)
+    if cfg.grad_clip_value > 0:
+      torch.nn.utils.clip_grad_value_(self.actor_params, cfg.grad_clip_value)
+    for optimizer in self.actor_optimizers:
+      optimizer.step()
+    if len(rollouts) > 1:
+      rollout = [torch.cat([r[t] for r in rollouts]) for t in range(cfg.horizon)]
+      obs = torch.cat(last_obs)
+    else:
+      rollout, obs = rollouts[0], last_obs[0]
     return {
-      "return": ret.mean().detach(),
+      "return": torch.cat(returns).mean(),
       "grad_norm": grad_norm,
       **self._fit_critic(rollout, obs),
       **getattr(self.actor, "auxiliary_stats", lambda: {})(),

@@ -66,6 +66,11 @@ def create_representation(
   if name == "gencoord":
     num_joints = infer_num_joints_from_state_dim(full_state_dim)
     rep: StateRepresentation = GenCoordRepresentation(num_joints, default_joint_pos)
+  elif name == "hoi_gencoord":
+    from supermimic.hoi.representation import HoiGenCoordRepresentation
+
+    num_joints = HoiGenCoordRepresentation.num_joints_from_full_dim(full_state_dim)
+    rep = HoiGenCoordRepresentation(num_joints, default_joint_pos)
   elif name == "maxcoord":
     if full_state_dim % 13 != 0:
       raise ValueError(
@@ -265,6 +270,24 @@ class StateRepresentation(nn.Module, ABC):
 
   substep_coeff: float = 1.0
 
+  context_columns: slice | None = None
+  """Columns of the normalized sim context fed to the actor as extra input."""
+
+  FULL_ACTOR_GOAL: bool = False
+  """True when the actor sees the whole WM goal (a privileged teacher)."""
+
+  def extra_termination_errors(
+    self,
+    aux_state: torch.Tensor,
+    ref_anchor_pos_w: torch.Tensor,
+    ref_anchor_quat_w: torch.Tensor,
+    motion_times: torch.Tensor,
+  ) -> torch.Tensor | None:
+    """Task-specific failure errors divided by their thresholds, ``(N, k)``, that
+    the WM env scores alongside its anchor rules; > 1 terminates. None if none."""
+    del aux_state, ref_anchor_pos_w, ref_anchor_quat_w, motion_times
+    return None
+
   # ------------------------------------------------------------------
   # Abstract methods (must be implemented by subclasses)
   # ------------------------------------------------------------------
@@ -418,6 +441,7 @@ class StateRepresentation(nn.Module, ABC):
     target_body_quat_w: torch.Tensor,
     target_body_lin_vel_w: torch.Tensor,
     target_body_ang_vel_w: torch.Tensor,
+    motion_times: torch.Tensor | None = None,
   ) -> torch.Tensor:
     """Per-env scalar reward used for WM-env rollouts.
 

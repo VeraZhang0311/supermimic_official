@@ -11,6 +11,7 @@ from mjlab.envs import ManagerBasedRlEnvCfg
 from mjlab.tasks.registry import list_tasks, load_env_cfg
 
 import supermimic.tasks  # noqa: F401
+from supermimic.hoi.env_cfg import configure_hoi_env, is_hoi_env
 from supermimic.runners.supermimic_runner import SuperMimicRunner, SuperMimicRunnerCfg
 from supermimic.scripts.train_utils import (
   create_env,
@@ -58,7 +59,15 @@ def main() -> None:
   device = setup_device(args.device)
   print(f"[INFO] Loading environment: {chosen_task}")
 
-  if args.motion_file:
+  if is_hoi_env(args.env):
+    if not args.motion_file:
+      raise ValueError("HOI tasks need --motion-file <packed HOI library directory>")
+    configure_hoi_env(args.env, args.motion_file)
+    args.registry_name = None
+    if args.runner.representation == "gencoord":
+      args.runner.representation = "hoi_gencoord"
+    print(f"[INFO] HOI library: {args.motion_file}")
+  elif args.motion_file:
     # Local motions handed straight to MotionLoader (globs/concatenates).
     if "," in args.motion_file:
       args.env.commands["motion"].motion_file = [

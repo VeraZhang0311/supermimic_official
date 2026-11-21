@@ -72,12 +72,16 @@ def build_actor_obs_td(
   goals_by_name: dict[str, torch.Tensor],
   history: torch.Tensor,
   critic: torch.Tensor | None = None,
+  context: torch.Tensor | None = None,
 ) -> TensorDict:
-  """``history`` (B, H, obs_dim) (+ optional ``critic``) plus one ``goal_<name>``
-  key per task. The newest frame ``history[:, -1]`` is the current obs."""
+  """``history`` (B, H, obs_dim) (+ optional ``critic`` and unnormalized actor
+  ``context``) plus one ``goal_<name>`` key per task. The newest frame
+  ``history[:, -1]`` is the current obs."""
   obs: dict[str, torch.Tensor] = {"history": history}
   if critic is not None:
     obs["critic"] = critic
+  if context is not None:
+    obs["context"] = context
   obs.update({f"goal_{name}": goal for name, goal in goals_by_name.items()})
   return TensorDict(obs, batch_size=[history.shape[0]], device=history.device)
 
@@ -91,7 +95,11 @@ def make_motion_task(representation: "StateRepresentation", num_goals: int) -> T
 
   return TaskSpec(
     name="motion",
-    goal_dim=actor_goal_dim(num_goals),
+    goal_dim=(
+      num_goals
+      if getattr(type(representation), "FULL_ACTOR_GOAL", False) is True
+      else actor_goal_dim(num_goals)
+    ),
     extract_training_goal=extract,
   )
 

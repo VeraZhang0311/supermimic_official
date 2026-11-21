@@ -128,10 +128,13 @@ class MultiEncoderAE(nn.Module):
     hidden_dims: tuple[int, ...],
     latent_bc_weight: float,
     history_length: int,
+    context_dim: int = 0,
   ):
+    """``context_dim`` > 0 adds ``obs_td["context"]`` (unnormalized) to the decoder."""
     super().__init__()
     if not task_specs:
       raise ValueError("task_specs must be non-empty")
+    self.context_dim = context_dim
     self.obs_dim = obs_dim
     self.history_length = history_length
     self.latent_dim = latent_dim
@@ -154,7 +157,7 @@ class MultiEncoderAE(nn.Module):
       }
     )
     self.decoder = build_mlp(
-      latent_dim + history_length * obs_dim,
+      latent_dim + history_length * obs_dim + context_dim,
       hidden_dims,
       output_dim=action_dim,
     )
@@ -198,7 +201,10 @@ class MultiEncoderAE(nn.Module):
 
     z = torch.cat([torch.tanh(eo) for eo in enc_outs], dim=0)
     history_n = self.obs_normalizer(obs_td["history"])
-    return self.decoder(torch.cat([z, history_n.flatten(start_dim=1)], dim=-1))
+    parts = [z, history_n.flatten(start_dim=1)]
+    if self.context_dim:
+      parts.append(obs_td["context"])
+    return self.decoder(torch.cat(parts, dim=-1))
 
   def _compute_aux_loss(
     self, obs_td: TensorDict, slots: list[tuple[int, int]]

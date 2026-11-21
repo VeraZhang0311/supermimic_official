@@ -122,6 +122,7 @@ def make_mock_representation(
   rep.dt = 0.02
 
   rep.actor_obs_mode = "rep_state"
+  rep.context_columns = None
   rep.represent.side_effect = lambda x: torch.randn(
     *x.shape[:-1], rep_state_dim, device=x.device
   )
@@ -142,6 +143,7 @@ def make_mock_wm_representation(batch: int) -> MagicMock:
     torch.randn(batch, MOTION_GOAL_DIM),  # actor_goal_obs
   )
   rep.compute_wm_reward_from_reference.side_effect = lambda *a, **kw: torch.zeros(batch)
+  rep.extra_termination_errors.side_effect = lambda *a, **kw: None
   return rep
 
 

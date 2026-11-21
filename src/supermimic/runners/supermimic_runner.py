@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dataclasses
 import time
 from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import asdict, dataclass, field
@@ -64,7 +65,11 @@ class SuperMimicRunnerCfg:
   wm: WorldModelLearnerCfg = field(default_factory=WorldModelLearnerCfg)
   max_iterations: int = 1000000
   replay_ratio: int = 16
-  latent_dim: int = 32
+  latent_dim: int = 0
+  """Goal latent width. 0 = auto: 64 for HOI, 32 otherwise."""
+  wm_warmup_updates: int = -1
+  """Update rounds that train only the world model before the policy starts.
+  -1 = auto: 500 for HOI, 0 otherwise."""
   actor_hidden_dims: tuple[int, ...] = (2048, 1024, 512, 256)
   critic_hidden_dims: tuple[int, ...] = (256, 128)
   latent_bc_weight: float = 1e-1
@@ -171,6 +176,27 @@ def build_world_model(
   )
 
 
+def resolve_auto_cfg(cfg: SuperMimicRunnerCfg, hoi: bool) -> SuperMimicRunnerCfg:
+  """Fill the ``auto`` fields (0 / -1) with the HOI or the motion-tracking default."""
+  cfg = dataclasses.replace(cfg)
+  if cfg.latent_dim == 0:
+    cfg.latent_dim = 64 if hoi else 32
+  if cfg.wm_warmup_updates < 0:
+    cfg.wm_warmup_updates = 500 if hoi else 0
+  policy = dataclasses.replace(cfg.policy)
+  if policy.grad_accum_chunks == 0:
+    policy.grad_accum_chunks = 4 if hoi else 1
+  if policy.ema_decay < 0:
+    policy.ema_decay = 0.999 if hoi else 0.0
+  cfg.policy = policy
+  return cfg
+
+
+def context_dim(representation: StateRepresentation) -> int:
+  cols = representation.context_columns
+  return 0 if cols is None else cols.stop - cols.start
+
+
 def build_actor(
   cfg: SuperMimicRunnerCfg, wm: WorldModel, device: str
 ) -> MultiEncoderAE:
@@ -182,6 +208,7 @@ def build_actor(
     else representation.proprio_obs_dim(wm.num_actions)
   )
   return MultiEncoderAE(
+    context_dim=context_dim(representation),
     obs_dim=obs_dim,
     action_dim=wm.num_actions,
     task_specs=resolve_task_specs(cfg.tasks, representation, wm.num_goals, device),
@@ -238,8 +265,11 @@ class SuperMimicRunner:
     registry_name: str | None = None,
     device: str = "cuda:0",
   ):
+    from supermimic.hoi.env_cfg import is_hoi_env
+
     self.env = env
-    self.cfg = cfg
+    self.is_hoi = is_hoi_env(env.unwrapped.cfg)
+    self.cfg = cfg = resolve_auto_cfg(cfg, self.is_hoi)
     self.task_id = task_id
     self.registry_name = registry_name
     self.device = device
@@ -493,7 +523,9 @@ class SuperMimicRunner:
       ts.name: ts.extract_training_goal(self.motion, motion_times, aux_state)
       for ts in self._active_task_specs
     }
-    return build_actor_obs_td(goals, self._collection_history(sensor))
+    cols = self._representation.context_columns
+    context = None if cols is None else sim_ctx[:, cols]
+    return build_actor_obs_td(goals, self._collection_history(sensor), context=context)
 
   def _configure_reset_sampling(self) -> None:
     self._sampler: ReturnSampler | None = None
@@ -517,6 +549,7 @@ class SuperMimicRunner:
       num_envs=self.env.num_envs,
       max_step_reward=self.wm_env.max_step_reward,
       device=self.device,
+      frame_bins=getattr(getattr(self.motion_cmd, "lib", None), "frame_bin", None),
     )
 
   def step(self) -> int:
@@ -600,6 +633,7 @@ class SuperMimicRunner:
     uploader = ThreadPoolExecutor(max_workers=1)
     upload: Future | None = None
 
+    wm_updates = 0
     for step in range(self.cfg.max_iterations):
       num_collected_steps += self.step()
 
@@ -615,12 +649,14 @@ class SuperMimicRunner:
         start_wm_time = time.time()
         wm_logs = self.world_model_learner.update(data)
         wm_learn_time += time.time() - start_wm_time
+        wm_updates += 1
+        loss_dict.update(wm_logs)
+        if wm_updates <= self.cfg.wm_warmup_updates:
+          continue  # world-model warm-up: no policy updates yet
 
         start_policy_time = time.time()
         policy_logs = self.policy_learner.update()
         policy_learn_time += time.time() - start_policy_time
-
-        loss_dict.update(wm_logs)
         loss_dict.update(policy_logs)
 
       if step % self.cfg.log_interval == 0:
@@ -654,6 +690,11 @@ class SuperMimicRunner:
         torch.save(self._wm.bundle(), world_model_path)
         torch.save(self.policy_learner.actor.state_dict(), actor_path)
         checkpoint_files = [world_model_path, actor_path]
+        ema = getattr(self.policy_learner, "ema_actor", None)
+        if ema is not None:
+          ema_path = str(log_dir / "actor_ema.pt")
+          torch.save(ema.state_dict(), ema_path)
+          checkpoint_files.append(ema_path)
         critic = getattr(self.policy_learner, "critic", None)
         if critic is not None:
           critic_path = str(log_dir / "critic.pt")
