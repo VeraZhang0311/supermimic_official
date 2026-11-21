@@ -426,13 +426,15 @@ def union_sdf(hulls, origin, shape, voxel):
   return phi.astype(np.float32), g.astype(np.float16), inside.reshape(shape)
 
 
-def cook_variant(name: str, geometry_path: str, mass: float, out: Path) -> dict:
+def cook_variant(name: str, geometry_path: str, mass: float, out: Path, coacd_cfg: dict | None = None) -> dict:
+  """Hulls, SDF and inertia of one object variant; ``coacd_cfg`` overrides
+  ``COACD`` (tools/hoi/recook_variant.py)."""
   import coacd
   import trimesh
 
   coacd.set_log_level("warn")
   mesh = geometry_mesh(geometry_path)
-  pieces = coacd.run_coacd(coacd.Mesh(np.asarray(mesh.vertices), np.asarray(mesh.faces)), **COACD)
+  pieces = coacd.run_coacd(coacd.Mesh(np.asarray(mesh.vertices), np.asarray(mesh.faces)), **(coacd_cfg or COACD))
   hulls = [trimesh.convex.convex_hull(outer_polytope(np.asarray(v, float), HULL_MAX_PLANES, HULL_TOL)) for v, _ in pieces]
   out.mkdir(parents=True, exist_ok=True)
   files = []

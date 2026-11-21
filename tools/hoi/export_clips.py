@@ -7,6 +7,7 @@ from the data pipeline's per-clip outputs, so every clip comes out full length
 Output directory:
   clips/<dataset>__<clip>.npz   per clip, see README.md written next to it
   objects/<type>.obj            the OMOMO mesh of each object type (unscaled)
+  collision/<variant>/          the library's convex hulls + SDF for that object (scaled)
   robot/                        G1 29-DoF MJCF + URDF + meshes (if --robot-dir)
   licenses/                     notices of the sources
   README.md, manifest.json
@@ -19,6 +20,7 @@ Output directory:
 from __future__ import annotations
 
 import argparse
+import functools
 import json
 import shutil
 import sys
@@ -62,9 +64,14 @@ def object_scale(meta: dict, arr) -> np.ndarray:
   return np.asarray(arr["metadata/object_asset/exact_scale"], float)  # ULTRA
 
 
+@functools.cache
+def geometry_bounds(geometry_path: str) -> np.ndarray:
+  return geometry_mesh(geometry_path).bounds
+
+
 def check_scale(mesh_bounds: np.ndarray, scale: np.ndarray, geometry_path: str, clip: str) -> None:
   """The scaled mesh must match the geometry the pipeline labelled contacts on."""
-  ref = geometry_mesh(geometry_path).bounds
+  ref = geometry_bounds(geometry_path)
   err = np.abs(mesh_bounds * scale - ref).max()
   if err > SCALE_CHECK_TOL_M:
     raise ValueError(f"{clip}: scaled mesh bounds differ from the pipeline geometry by {err:.4f} m")
@@ -99,6 +106,7 @@ def export_clip(entry: dict, info: dict, mesh_bounds: dict, out: Path) -> dict:
     object_type=typ,
     object_mesh=f"objects/{typ}.obj",
     object_scale=scale.astype(np.float32),
+    object_collision=f"collision/{info['variant']}" if "variant" in info else "",
     hand_contact=limb_contact(labels, intersect, channels, HAND_CHANNELS),
     foot_contact=limb_contact(labels, intersect, channels, FOOT_CHANNELS),
     contact_channels=np.asarray(channels),
@@ -109,9 +117,11 @@ def export_clip(entry: dict, info: dict, mesh_bounds: dict, out: Path) -> dict:
     source_clip=entry["clip_id"],
     source_fps=np.float32(prov["source_fps"]),
     categories=np.asarray(info.get("categories", []), dtype=str),
+    split=info.get("split", ""),
   )
   return {"file": f"clips/{name}.npz", "dataset": entry["dataset"], "clip": entry["clip_id"],
-          "object_type": typ, "object_scale": scale.round(4).tolist(), "frames": len(t),
+          "object_type": typ, "object_scale": scale.round(4).tolist(),
+          "object_collision": info.get("variant", ""), "split": info.get("split", ""), "frames": len(t),
           "source_fps": prov["source_fps"], "categories": info.get("categories", [])}
 
 
@@ -148,8 +158,40 @@ So the pose is the mesh origin (the OMOMO meshes are centred on it), not the cen
 `_100_100_100` suffix). In ULTRA clip names, the three numbers before that suffix are ULTRA's
 per-axis trajectory augmentation (`--xyz`), not an object scale.
 
+## Collision geometry
+`collision/<variant>/` holds the convex decomposition we simulate each object with; a clip names
+its variant in `object_collision`. Per variant:
+- `hull_XX.obj`: at most 12 convex hulls (24 for woodchair). Their vertices are already at the clip's size (0.83 for
+  chairs and tables, 1.0 for boxes and suitcase) and in the same object frame as
+  `object_pos` / `object_quat`, so place them with that pose and no extra scale.
+- `sdf.npz`: signed distance to the union of the hulls on a 1 cm grid in the object frame
+  (`phi`, negative inside; `normal`, float16 unit gradients; `origin` of voxel [0, 0, 0];
+  `voxel` size).
+- `collision/variants.json`: per variant the hull files, extent, centre of mass `ipos`,
+  principal axes `iquat` (wxyz) and principal moments `inertia` for `mass`. That mass is the
+  nominal mass of our own teacher setup; inertia scales linearly with mass.
+
+The hulls enclose the mesh from outside (CoACD with at most 12 pieces, 24 for woodchair, then each piece wrapped
+by an outer polytope of at most 38 of its own supporting planes, so at most 72 vertices). They
+are a conservative collision approximation, not a watertight reconstruction of the original
+surface. How far the outer surface of the hulls lies from the original mesh:
+
+| variant | p95 | max |
+|---|---|---|
+| smalltable | 0.4 cm | 0.6 cm |
+| largetable | 0.7 cm | 1.1 cm |
+| woodchair | 0.8 cm | 1.8 cm |
+| largebox, smallbox, suitcase | 1.3-1.5 cm | 1.8-2.0 cm |
+| whitechair | 1.6 cm | 2.9 cm |
+| plasticbox | 2.3 cm | 4.2 cm |
+
+woodchair was re-cooked on 2026-11-21 (CoACD concavity threshold 0.04, up to 24 pieces,
+preprocessing resolution 100). With 12 pieces its stretchers and the gaps between its back
+slats were filled in (p95 4.7 cm, max 15 cm), which also moved its centre of mass 7 cm down.
+
 ## Contacts
-Geometric labels from distances between robot collision surfaces and the object surface
+Our own geometric labels, from distances between the robot's collision surfaces (ULTRA's G1 with
+rubber hands, for all clips) and the object surface
 (on below 2 cm, off above 4 cm): proximity, **not** measured force contacts.
 - `hand_contact`, `foot_contact` (T, 2) int8, [left, right]: 1 touching (or penetrating the
   object), 0 separated, -1 unknown.
@@ -167,13 +209,15 @@ The references are kinematic: some frames have the robot partly inside the objec
 - Object meshes: OMOMO geometry via InterMimic (MIT), see `licenses/`.
 - Robot model: Unitree, BSD-3-Clause.
 Non-commercial use; cite OMOMO, InterMimic, HOI-Retarget and ULTRA. `categories` carries our
-own manual tags (chairs and tables only).
+own manual tags (chairs and tables only). `split` is `train` for the clips we train on and `eval`
+for the clips we hold out for evaluation.
 """
 
 
 def main() -> int:
   ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-  ap.add_argument("--library", required=True, help="packed HOI library (its clips are exported)")
+  ap.add_argument("--library", action="append", required=True,
+                  help="[split=]packed HOI library; its clips are exported, tagged with split; repeatable")
   ap.add_argument("--index", required=True, help="the pipeline's included.jsonl")
   ap.add_argument("--objects-dir", required=True, help="dir with <type>/<type>.obj (OMOMO meshes)")
   ap.add_argument("--robot-dir", help="G1 model dir to copy into robot/")
@@ -192,8 +236,22 @@ def main() -> int:
 
   index = {(e["dataset"], e["clip_id"]): e for e in map(json.loads, Path(args.index).read_text().splitlines()) if e}
   info = {}
-  for c in json.loads((Path(args.library) / "hoi" / "clips.json").read_text()):
-    info.setdefault((c["dataset"], c["source_clip"]), c)  # trimmed pieces share a source clip
+  hull_dir = {}  # variant name -> (library hoi dir, variants.json entry)
+  for spec in args.library:
+    split, _, path = spec.rpartition("=")
+    lib = Path(path) / "hoi"
+    variants = json.loads((lib / "variants.json").read_text())["variants"]
+    for var in variants:
+      prev = hull_dir.setdefault(var["name"], (lib, var))
+      if prev[1]["geometry_sha256"] != var["geometry_sha256"]:
+        raise ValueError(f"variant {var['name']} has different geometry in {prev[0]} and {lib}")
+    clip_variant = np.load(lib / "clip_variant.npy")
+    for c, v in zip(json.loads((lib / "clips.json").read_text()), clip_variant, strict=True):
+      key = (c["dataset"], c["source_clip"])
+      if key in info and info[key]["split"] != split:
+        raise ValueError(f"{key} is in two libraries")
+      # Trimmed pieces share a source clip (and its variant).
+      info.setdefault(key, {**c, "variant": variants[v]["name"], "split": split})
   by_type = defaultdict(list)
   for ds, clip in info:
     by_type[object_type(clip)].append(f"{ds}\t{clip}")
@@ -209,6 +267,20 @@ def main() -> int:
     rows.append(export_clip(index[(ds, clip)], info[(ds, clip)], mesh_bounds, out))
     print(f"{rows[-1]['file']}  frames={rows[-1]['frames']}  scale={rows[-1]['object_scale'][0]}", flush=True)
 
+  # Convex decomposition and SDF of every variant the exported clips use.
+  used = {r["object_collision"] for r in rows}
+  coll = []
+  for lib, var in hull_dir.values():
+    if var["name"] not in used:
+      continue
+    dst = out / "collision" / var["name"]
+    dst.mkdir(parents=True)
+    for f in [*var["hulls"], "sdf.npz"]:
+      shutil.copyfile(lib / "objects" / var["name"] / f, dst / f)
+    coll.append({k: var[k] for k in ("name", "type", "dataset", "hulls", "hull_vertices_max", "extent_m",
+                                     "mass", "ipos", "iquat", "inertia", "sdf_shape")})
+  (out / "collision" / "variants.json").write_text(json.dumps({"variants": coll}, indent=1))
+
   if args.robot_dir:
     shutil.copytree(args.robot_dir, out / "robot")
   if args.license:
@@ -217,7 +289,7 @@ def main() -> int:
       shutil.copyfile(p, out / "licenses" / Path(p).name)
   (out / "README.md").write_text(README)
   (out / "manifest.json").write_text(json.dumps({
-    "library": str(Path(args.library).resolve()), "index": str(Path(args.index).resolve()),
+    "libraries": args.library, "index": str(Path(args.index).resolve()),
     "per_type": args.per_type, "clips": rows,
   }, indent=1))
   print(f"{len(rows)} clips -> {out}")

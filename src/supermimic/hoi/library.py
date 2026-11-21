@@ -77,6 +77,17 @@ def assign_world_variants(
   return np.repeat(np.arange(n), counts)
 
 
+def support_points(points: np.ndarray) -> np.ndarray:
+  """The vertices of the points' convex hull: for any orientation, the lowest
+  point (or the furthest along any direction) is one of them."""
+  from scipy.spatial import ConvexHull, QhullError
+
+  try:
+    return points[np.sort(ConvexHull(points).vertices)]
+  except QhullError:  # flat or degenerate point set
+    return points
+
+
 class HoiLibrary:
   """Object reference and geometry, on ``device``, indexed by global frame."""
 
@@ -87,7 +98,9 @@ class HoiLibrary:
     self.device = device
 
     def load(name: str, dtype=torch.float32) -> torch.Tensor:
-      return torch.from_numpy(np.load(hoi / f"{name}.npy")).to(device=device, dtype=dtype)
+      return torch.from_numpy(np.load(hoi / f"{name}.npy")).to(
+        device=device, dtype=dtype
+      )
 
     self.object_pos_w = load("object_pos_w")
     self.object_quat_w = load("object_quat_w")
@@ -116,7 +129,11 @@ class HoiLibrary:
       [v.scale for v in self.variants], dtype=torch.float32, device=device
     )
 
-    self._clip_starts, self._clip_lengths, self._clip_variant = starts, lengths, clip_variant
+    self._clip_starts, self._clip_lengths, self._clip_variant = (
+      starts,
+      lengths,
+      clip_variant,
+    )
     self._per_bin = max(1, int(round(bin_seconds / dt)))
     self.restrict_starts(np.ones(total, bool))
     self._load_geometry(hoi)
@@ -157,7 +174,8 @@ class HoiLibrary:
     self.frame_bin = torch.from_numpy(frame_bin).to(device)
     self.clip_first_bin = torch.tensor(clip_first_bin, dtype=torch.long, device=device)
     self.variant_bin_mask = (
-      self.bin_variant[None, :] == torch.arange(self.num_variants, device=device)[:, None]
+      self.bin_variant[None, :]
+      == torch.arange(self.num_variants, device=device)[:, None]
     ).float()
     self.variant_start_mask = torch.zeros_like(self.variant_bin_mask)
     self.variant_start_mask[
@@ -186,7 +204,15 @@ class HoiLibrary:
     self.sdf_origin = torch.as_tensor(
       np.stack([g["origin"] for g in grids]), dtype=torch.float32, device=self.device
     )
-    verts = [np.load(hoi / "objects" / v.name / "verts.npy") for v in self.variants]
+    # object_clearance takes a minimum over these points every represented state;
+    # their convex hull's vertices give the same minimum, and their number does not
+    # grow with the hull count (woodchair's 24 hulls: 1.7k vertices).
+    verts = [
+      support_points(np.load(hoi / "objects" / v.name / "verts.npy"))
+      for v in self.variants
+    ]
     m = max(len(v) for v in verts)
-    padded = np.stack([np.concatenate([v, np.repeat(v[:1], m - len(v), 0)]) for v in verts])
+    padded = np.stack(
+      [np.concatenate([v, np.repeat(v[:1], m - len(v), 0)]) for v in verts]
+    )
     self.hull_verts = torch.from_numpy(padded).to(self.device, torch.float32)
