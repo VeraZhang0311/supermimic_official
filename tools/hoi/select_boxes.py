@@ -1,13 +1,17 @@
-"""Pick the ULTRA box clips for training from a QA'd library.
+"""Pick the ULTRA box clips for training from a QA report.
 
 Drops clips the QA flagged (``qa_hoi_dataset.py``), then fills each box type up
-to a frame budget: the mean frames per type of the library's HOI-Retarget
+to a frame budget: the mean frames per type of the report's HOI-Retarget
 (user-curated) variants, unless ``--frames`` is given. Clips are taken in turns
 over source motions (the ULTRA augmentations of one capture share a source) so
 every source is used before any gets a second augmentation; within a source the
 cleanest augmentation (lowest reference penetration) goes first.
 
-  python tools/hoi/select_boxes.py <QA'd library> --out boxes.txt [--frames N]
+``--exclude`` takes held-out clips (``select_eval.py``): every augmentation of a
+held-out box source is dropped, and held-out curated clips leave the budget.
+
+  python tools/hoi/select_boxes.py <QA'd library or qa.json> --out boxes.txt \
+      [--exclude eval.txt] [--frames N]
 
 Writes ``ultra:<clip_id>`` lines for ``build_hoi_dataset.py --clips``.
 """
@@ -34,35 +38,42 @@ def source_of(clip: str) -> str:
 
 def main() -> None:
   ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-  ap.add_argument("library")
+  ap.add_argument("qa", help="QA'd library dir (reads hoi/qa.json) or a qa.json file")
   ap.add_argument("--out", required=True)
+  ap.add_argument("--exclude", default=None, help="held-out clips, one dataset:clip_id per line")
   ap.add_argument("--frames", type=int, default=0, help="frames per box type (0: curated-type mean)")
   ap.add_argument("--seed", type=int, default=0)
   args = ap.parse_args()
 
-  h = Path(args.library) / "hoi"
-  rows = json.loads((h / "qa.json").read_text())["clips"]
-  clips = json.loads((h / "clips.json").read_text())
-  if len(rows) != len(clips):
-    raise ValueError("qa.json and clips.json disagree on clip count; rerun qa_hoi_dataset.py")
-  qa = {c["name"]: r for c, r in zip(clips, rows, strict=True)}  # both in motion order
+  path = Path(args.qa)
+  rows = json.loads((path / "hoi" / "qa.json" if path.is_dir() else path).read_text())["clips"]
+  held = set()
+  if args.exclude:
+    held = {line.strip() for line in Path(args.exclude).read_text().splitlines() if line.strip()}
+  held_sources = {source_of(n.split(":", 1)[1]) for n in held if n.startswith("ultra:")}
+
+  def base(name: str) -> str:
+    return name.split("#", 1)[0]  # a trimmed piece belongs to its clip
+
   frames_by_variant = collections.Counter()
-  for c in clips:
-    frames_by_variant[qa[c["name"]]["variant"]] += c["frames"]
-  curated = [n for v, n in frames_by_variant.items() if not v.endswith("_ultra")]
+  for r in rows:
+    if not r["variant"].endswith("_ultra") and base(r["name"]) not in held:
+      frames_by_variant[r["variant"]] += round(r["seconds"] / DT)
+  curated = list(frames_by_variant.values())
   budget = args.frames or round(sum(curated) / len(curated))
-  print(f"budget {budget} frames ({budget * DT / 60:.0f} min) per box type")
+  print(f"budget {budget} frames ({budget * DT / 60:.0f} min) per box type; "
+        f"{len(held_sources)} held-out box sources, {len(held) - len(held_sources)} held-out other clips")
 
   rng = random.Random(args.seed)
   lines = []
   for box in BOXES:
-    pool = [c for c in clips if c["dataset"] == "ultra" and qa[c["name"]]["variant"] == f"{box}_ultra"]
-    kept = [c for c in pool if not qa[c["name"]]["flags"]]
+    pool = [r for r in rows if r["name"].startswith("ultra:") and r["variant"] == f"{box}_ultra"]
+    kept = [r for r in pool if not r["flags"] and source_of(r["name"][6:]) not in held_sources]
     by_source = collections.defaultdict(list)
-    for c in kept:
-      by_source[source_of(c["name"])].append(c)
+    for r in kept:
+      by_source[source_of(r["name"][6:])].append(r)
     for augs in by_source.values():
-      augs.sort(key=lambda c: (qa[c["name"]]["penetration_p90_m"], c["name"]))
+      augs.sort(key=lambda r: (r["penetration_p90_m"], r["name"]))
     order = sorted(by_source)
     rng.shuffle(order)
     picked, total = [], 0
@@ -72,11 +83,11 @@ def main() -> None:
           break
         if k < len(by_source[s]):
           picked.append(by_source[s][k])
-          total += by_source[s][k]["frames"]
-    lines += [f"ultra:{c['source_clip']}" for c in sorted(picked, key=lambda c: c["name"])]
-    sources = {source_of(c["name"]) for c in picked}
+          total += round(by_source[s][k]["seconds"] / DT)
+    lines += sorted(r["name"] for r in picked)
+    sources = {source_of(r["name"][6:]) for r in picked}
     print(
-      f"{box:10s} pool {len(pool):4d} flagged {len(pool) - len(kept):4d} kept {len(kept):4d} "
+      f"{box:10s} pool {len(pool):4d} usable {len(kept):4d} "
       f"-> picked {len(picked):4d} clips, {total} frames, {len(sources)}/{len(by_source)} sources"
     )
   Path(args.out).write_text("\n".join(lines) + "\n")

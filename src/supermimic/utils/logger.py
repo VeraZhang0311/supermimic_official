@@ -70,6 +70,12 @@ class Logger:
       self.cur_reward_sum[new_ids] = 0
       self.cur_episode_length[new_ids] = 0
 
+  def _reward_per_step(self) -> float:
+    """Reward per env step over the buffered episodes: independent of how long
+    episodes last, so it compares across training (at most the sum of positive
+    reward weights times step_dt)."""
+    return sum(self.rewbuffer) / max(sum(self.lenbuffer), 1.0)
+
   def _episode_extras(self) -> dict[str, float]:
     """Mean of each episode extra over the episodes since the last log."""
     means = {}
@@ -133,6 +139,7 @@ class Logger:
       log_string += (
         f"""{"Mean episode length:":>{pad}} {statistics.mean(self.lenbuffer):.2f}\n"""
       )
+      log_string += f"""{"Reward per step:":>{pad}} {self._reward_per_step():.4f}\n"""
 
     for key, value in extras.items():
       label = f"{key}:" if "/" in key else f"Episode {key}:"
@@ -185,6 +192,7 @@ class Logger:
     if len(self.rewbuffer) > 0:
       row["Train/mean_reward"] = statistics.mean(self.rewbuffer)
       row["Train/mean_episode_length"] = statistics.mean(self.lenbuffer)
+      row["Train/reward_per_step"] = self._reward_per_step()
     row |= {k if "/" in k else f"Episode/{k}": v for k, v in extras.items()}
     row |= extra_row or {}
     wandb.log(row, step=it)

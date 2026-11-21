@@ -200,6 +200,26 @@ def entries_from_clip_list(path: str, index: list[dict]) -> list[dict]:
   return out
 
 
+def read_clip_names(path: str | None) -> set[str] | None:
+  """``dataset:clip_id`` lines (e.g. ``select_eval.py`` output), or None."""
+  if not path:
+    return None
+  return {line.strip() for line in Path(path).read_text().splitlines() if line.strip() and not line.startswith("#")}
+
+
+def filter_entries(entries: list[dict], only: str | None, exclude: str | None) -> list[dict]:
+  """Keep the entries named in ``only`` (all must exist), drop those in ``exclude``."""
+  keep, drop = read_clip_names(only), read_clip_names(exclude) or set()
+  names = [f"{e['dataset']}:{e['clip_id']}" for e in entries]
+  if keep is not None:
+    missing = keep - set(names)
+    if missing:
+      raise KeyError(f"--only clips not among the selected entries: {sorted(missing)[:5]}")
+  out = [e for e, n in zip(entries, names, strict=True) if (keep is None or n in keep) and n not in drop]
+  print(f"[select] {len(entries)} entries -> {len(out)} after --only/--exclude", file=sys.stderr)
+  return out
+
+
 def select_entries(args) -> list[dict]:
   """Clips from every ``--table`` and ``--clips`` given (combined), else by filter."""
   index = [json.loads(line) for line in Path(args.index).read_text().splitlines() if line]
@@ -210,7 +230,7 @@ def select_entries(args) -> list[dict]:
     dup = [k for k, n in seen.items() if n > 1]
     if dup:
       raise ValueError(f"clips listed more than once: {dup[:5]}")
-    return out
+    return filter_entries(out, args.only, args.exclude)
   objects = set(args.objects.split(",")) if args.objects else set(OBJECT_TYPES)
   datasets = set(args.datasets.split(","))
   per_variant = defaultdict(int)
@@ -452,6 +472,8 @@ def cook_variant(name: str, geometry_path: str, mass: float, out: Path) -> dict:
 def main() -> int:
   ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
   ap.add_argument("--index", required=True, help="curated selection included.jsonl")
+  ap.add_argument("--only", default=None, help="keep only these dataset:clip_id lines (e.g. held-out eval clips)")
+  ap.add_argument("--exclude", default=None, help="drop these dataset:clip_id lines (e.g. held-out eval clips)")
   ap.add_argument("--clips", action="append", default=[],
                   help="text file, one clip_id (or dataset:clip_id) per line; repeatable")
   ap.add_argument("--table", action="append", default=[],
@@ -525,7 +547,7 @@ def main() -> int:
   digest = hashlib.sha256("\n".join(f"{c['dataset']}:{c['name']}" for c in clips).encode()).hexdigest()
   inter = np.concatenate([c["ref_intersection"] for c in clips])
   (out / "build_manifest.json").write_text(json.dumps({
-    "index": str(Path(args.index).resolve()), "clip_lists": args.clips, "tables": args.table,
+    "index": str(Path(args.index).resolve()), "clip_lists": args.clips, "tables": args.table, "only": args.only, "exclude": args.exclude,
     "clip_list_sha256": digest, "source_clips": len(entries), "clips": len(clips),
     "frames": int(sum(len(c["joint_pos"]) for c in clips)),
     "ref_intersection_frac": round(float(inter.mean()), 4), "trim_requested_but_nothing_kept": untrimmed,

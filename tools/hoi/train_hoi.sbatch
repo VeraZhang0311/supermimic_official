@@ -39,7 +39,7 @@ if [ "${PRECHECK:-0}" = 1 ]; then
   WANDB_MODE=offline uv run --no-sync python src/supermimic/scripts/train.py SuperMimic-HOI-G1 \
     --motion_file "$LIB" --num_envs 4096 "$@" \
     --runner.run_name precheck --runner.max_iterations 300 --runner.log_interval 10 \
-    --runner.save_interval 1000000 --runner.wm_warmup_updates 20
+    --runner.save_interval 1000000 --runner.wm_warmup_updates 20 --runner.eval_interval 10
 fi
 uv run --no-sync python src/supermimic/scripts/train.py SuperMimic-HOI-G1 \
   --motion_file "$LIB" \

@@ -44,7 +44,9 @@ def hoi_env_cfg(play: bool = False, task: HoiTaskCfg | None = None) -> ManagerBa
 
   # Elliptic friction at impratio 10 (grip without slip) needs more Newton steps:
   # at the official 10, ~4% of substeps stop unconverged, mostly while holding the
-  # object; at 20 none do, for ~2% more step time (tools/hoi/solver_check.py).
+  # object; at 20 none do, for ~2% more step time (tools/hoi/solver_check.py,
+  # reference replay). Off-reference states in training (an untrained policy)
+  # still hit the cap now and then: a few warnings per 10 steps across 4096 worlds.
   cfg.sim.mujoco = dataclasses.replace(cfg.sim.mujoco, cone="elliptic", impratio=10, iterations=20)
   # Measured at 4096 worlds: ~17 contacts per world (pooled across worlds, peak
   # step mean 22) and <= 465 constraint rows in any world (mean 53). Larger

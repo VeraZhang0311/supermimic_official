@@ -205,3 +205,99 @@ def test_logger_duration_shows_days():
 
   assert _duration(3725) == "01:02:05"
   assert _duration(2 * 86400 + 61) == "2d 00:01:01"
+
+
+def test_logger_reward_per_step_is_ratio_of_sums():
+  from supermimic.utils.logger import Logger
+
+  log = Logger(run_name=None, num_envs=2, max_episode_length=500, device="cpu")
+  assert log._reward_per_step() == 0.0
+  log.rewbuffer.extend([10.0, 30.0])
+  log.lenbuffer.extend([100.0, 100.0])
+  assert log._reward_per_step() == pytest.approx(0.2)
+
+
+def _series(n: int, **overrides):
+  from supermimic.hoi.evaluate import DIAGNOSTICS
+
+  s = {k: np.zeros(n) for k in (*DIAGNOSTICS, "pelvis_drop_m")}
+  s.update(overrides)
+  return s
+
+
+class TestEvalScoring:
+  DT = 0.02
+
+  def test_clean_clip_passes_everything(self):
+    from supermimic.hoi.evaluate import score_clip
+
+    out = score_clip(_series(100), np.arange(100) * self.DT, self.DT, diverged=False)
+    assert out["phc_pass"] and out["object_pose_pass"] and out["body_and_object_pose_pass"]
+    assert not out["fell"] and out["first_fail_s"] is None and out["seconds"] == pytest.approx(2.0)
+
+  def test_one_frame_over_half_a_metre_fails_phc(self):
+    from supermimic.hoi.evaluate import score_clip
+
+    body = np.zeros(100)
+    body[40] = 0.51
+    out = score_clip(_series(100, body_err_m=body), np.arange(100) * self.DT, self.DT, diverged=False)
+    assert not out["phc_pass"] and out["object_pose_pass"]
+    assert out["first_fail_s"] == pytest.approx(0.8)
+
+  def test_object_off_for_exactly_0p3_s_still_passes(self):
+    from supermimic.hoi.evaluate import score_clip
+
+    pos = np.zeros(100)
+    pos[10:25] = 0.3  # 15 frames = 0.30 s
+    assert score_clip(_series(100, object_pos_err_m=pos), np.arange(100) * self.DT, self.DT, False)["object_pose_pass"]
+    pos[10:26] = 0.3  # 16 frames, longer than 0.3 s
+    out = score_clip(_series(100, object_pos_err_m=pos), np.arange(100) * self.DT, self.DT, False)
+    assert not out["object_pose_pass"] and out["first_fail_s"] == pytest.approx(25 * self.DT)
+
+  def test_a_flipped_object_counts_as_off(self):
+    from supermimic.hoi.evaluate import score_clip
+
+    ori = np.full(100, 180.0)  # upside down, position perfect
+    assert not score_clip(_series(100, object_ori_err_deg=ori), np.arange(100) * self.DT, self.DT, False)["object_pose_pass"]
+
+  def test_fall_needs_0p3_s_below_the_reference(self):
+    from supermimic.hoi.evaluate import score_clip
+
+    drop = np.zeros(100)
+    drop[50:64] = 0.4  # 14 frames
+    assert not score_clip(_series(100, pelvis_drop_m=drop), np.arange(100) * self.DT, self.DT, False)["fell"]
+    drop[50:65] = 0.4  # 15 frames = 0.3 s
+    out = score_clip(_series(100, pelvis_drop_m=drop), np.arange(100) * self.DT, self.DT, False)
+    assert out["fell"] and out["fall_s"] == pytest.approx(64 * self.DT)
+
+  def test_diverged_clip_fails(self):
+    from supermimic.hoi.evaluate import score_clip
+
+    out = score_clip(_series(10), np.arange(10) * self.DT, self.DT, diverged=True)
+    assert not out["phc_pass"] and not out["object_pose_pass"] and out["fell"]
+
+  def test_summary_groups_by_object_and_kind(self):
+    from supermimic.hoi.evaluate import score_clip, summarize
+
+    good = score_clip(_series(50), np.arange(50) * self.DT, self.DT, False)
+    bad = score_clip(_series(50, body_err_m=np.ones(50)), np.arange(50) * self.DT, self.DT, False)
+    clips = [{"type": "largebox", "kind": "hand", **good}, {"type": "largebox", "kind": "foot", **bad},
+             {"type": "whitechair", "kind": "hand", **good}]
+    out = summarize(clips)
+    assert out["all/phc_pass_rate"] == pytest.approx(2 / 3)
+    assert out["largebox/phc_pass_rate"] == pytest.approx(0.5)
+    assert out["foot/phc_pass_rate"] == 0.0 and out["hand/clips"] == 2
+    assert out["all/body_err_m/mean"] == pytest.approx(1 / 3)
+    assert out["foot/first_fail_s"] == pytest.approx(0.0)
+
+
+def test_eval_env_cfg_is_nominal_and_unbounded(tmp_path):
+  from supermimic.hoi.evaluate import KEEP_TERMINATIONS, hoi_eval_env_cfg
+
+  cfg = hoi_eval_env_cfg(str(make_library(tmp_path)))
+  assert cfg.seed == 42
+  assert set(cfg.terminations) <= set(KEEP_TERMINATIONS) and "bad_object" not in cfg.terminations
+  assert not {"foot_friction", "base_com", "encoder_bias"} & set(cfg.events)
+  assert cfg.events["object_variant"].params["mass_scale_range"] == (1.0, 1.0)
+  cmd = cfg.commands["motion"]
+  assert cmd.eval_clips and cmd.sampling_mode == "uniform" and cmd.pose_range == {}

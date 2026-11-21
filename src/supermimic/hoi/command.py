@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import mujoco
@@ -46,8 +47,13 @@ def world_variants(env: ManagerBasedRlEnv, command_name: str = "motion") -> torc
   cached = getattr(env, "_hoi_world_variant", None)
   if cached is None:
     cfg = env.cfg.commands[command_name]
-    variants = read_variants(library_root(env, command_name))
-    assignment = assign_world_variants(variants, env.num_envs, cfg.min_worlds_per_variant)
+    root = library_root(env, command_name)
+    if cfg.eval_clips:  # world i plays clip i
+      assignment = np.load(Path(root) / "hoi" / "clip_variant.npy")
+      if len(assignment) != env.num_envs:
+        raise ValueError(f"eval_clips needs one world per clip: {len(assignment)} clips, {env.num_envs} worlds")
+    else:
+      assignment = assign_world_variants(read_variants(root), env.num_envs, cfg.min_worlds_per_variant)
     cached = torch.as_tensor(assignment, dtype=torch.long, device=env.device)
     env._hoi_world_variant = cached
   return cached
@@ -225,6 +231,8 @@ class HoiMotionCommand(MotionCommand):
     return frames
 
   def _uniform_sampling(self, env_ids: torch.Tensor) -> torch.Tensor:
+    if self.cfg.eval_clips:  # world i starts clip i at its first allowed frame
+      return self.lib.bin_start[self.lib.clip_first_bin[env_ids]]
     return self._sample_bins(env_ids, torch.full((self.bin_count,), 1.0 / self.bin_count, device=self.device))
 
   def _adaptive_sampling(self, env_ids: torch.Tensor) -> torch.Tensor:
@@ -302,6 +310,9 @@ class HoiMotionCommandCfg(MotionCommandCfg):
   min_worlds_per_variant: int = 16
   start_of_clip: bool = False
   """Start every reset at the first frame of a clip (evaluation)."""
+  eval_clips: bool = False
+  """Evaluation: world i plays clip i from its first allowed start frame (one
+  world per clip; sampling_mode 'uniform')."""
   start_penetration: float = 0.01
   """Resets start only at frames where the reference sinks the robot's collision
   geometry at most this deep (m) into the object."""

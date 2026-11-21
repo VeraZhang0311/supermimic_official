@@ -89,6 +89,10 @@ class SuperMimicRunnerCfg:
   train.py resolves this into the motion command's cfg before the env is built
   ('return' drives mjlab's 'external' mode)."""
   return_sampler: ReturnSamplerCfg = field(default_factory=ReturnSamplerCfg)
+  eval_motion_file: str | None = None
+  """Held-out HOI library played in-process by ``supermimic.hoi.evaluate`` every
+  ``eval_interval`` logged iterations (results under ``Eval/`` on W&B)."""
+  eval_interval: int = 2000
 
 
 @dataclass
@@ -283,6 +287,13 @@ class SuperMimicRunner:
       max_episode_length=env.max_episode_length,
       device=device,
     )
+    self.evaluator = None
+    if cfg.eval_motion_file:
+      if not self.is_hoi:
+        raise ValueError("eval_motion_file is the HOI protected evaluation; this task is not HOI")
+      from supermimic.hoi.evaluate import HoiEvaluator
+
+      self.evaluator = HoiEvaluator(self, cfg.eval_motion_file)
 
   def _init_common(self) -> None:
     wm = build_world_model(self.cfg, self.env, self.device)
@@ -607,6 +618,17 @@ class SuperMimicRunner:
     for actor_td in actor_inputs:
       self.policy_learner.actor.update_normalization(actor_td)
 
+  def _evaluate(self, log_count: int) -> None:
+    """Protected evaluation, logged at this iteration's W&B step."""
+    t0 = time.time()
+    row = self.evaluator.run()
+    wandb.log(row, step=log_count)
+    print(
+      f"[EVAL] iteration {log_count}: pass rate body {row['Eval/all/phc_pass_rate']:.2f}, "
+      f"object {row['Eval/all/object_pose_pass_rate']:.2f}, both {row['Eval/all/body_and_object_pose_pass_rate']:.2f}, "
+      f"fell {row['Eval/all/fell_rate']:.2f} ({time.time() - t0:.0f} s)"
+    )
+
   def run(self) -> None:
     log_dir = self._create_log_dir()
     self._init_wandb(log_dir)
@@ -674,6 +696,8 @@ class SuperMimicRunner:
           num_collected_steps=num_collected_steps,
           extra_row=self.motion_cmd.log_stats() if hasattr(self.motion_cmd, "log_stats") else None,
         )
+        if self.evaluator is not None and log_count > 0 and log_count % self.cfg.eval_interval == 0:
+          self._evaluate(log_count)
 
         log_count += 1
         start_time = time.time()
