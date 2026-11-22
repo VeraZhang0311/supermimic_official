@@ -1,5 +1,6 @@
 import math
 
+import pytest
 import torch
 
 from supermimic.runners.reset_sampling import ReturnSampler, ReturnSamplerCfg
@@ -33,6 +34,18 @@ def test_unmeasured_bins_read_v_max_and_sampling_starts_uniform() -> None:
   assert torch.equal(s.value, torch.full((4,), 100.0))
   w = _step(s, 25, 1.0)  # bin 2 is measured at v_max: nothing is hard yet
   assert torch.allclose(w, torch.full((4,), 0.25))
+
+
+def test_state_dict_round_trip_continues_the_same() -> None:
+  s = _sampler(horizon=1)
+  _step(s, 25, 0.2)
+  _step(s, 5, 0.9, terminated=True)
+  t = _sampler(horizon=1)
+  t.load_state_dict(s.state_dict())
+  assert torch.equal(_step(t, 15, 0.5), _step(s, 15, 0.5))
+  assert torch.equal(t.value, s.value) and torch.equal(t.effort, s.effort)
+  with pytest.raises(ValueError):
+    _sampler(bin_count=5).load_state_dict(s.state_dict())
 
 
 def test_record_returns_a_distribution_every_horizon_steps() -> None:

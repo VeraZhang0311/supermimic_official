@@ -67,6 +67,22 @@ class ReturnSampler:
     self._timed_out = torch.zeros(shape, dtype=torch.bool, device=device)
     self._step = 0
 
+  def state_dict(self) -> dict[str, torch.Tensor]:
+    """V, its sample counts and the summed focus. A partly filled window is left
+    out: a resumed run starts a new one."""
+    return {"value": self.value, "count": self.count, "effort": self.effort}
+
+  def load_state_dict(self, state: dict[str, torch.Tensor]) -> None:
+    if state["value"].shape != self.value.shape:
+      raise ValueError(
+        f"sampler state has {state['value'].numel()} bins, this run {self.bin_count}"
+      )
+    # Copies: `effort` grows in place, and must not alias the caller's tensor.
+    self.value = state["value"].to(self.value, copy=True)
+    self.count = state["count"].to(self.count, copy=True)
+    self.effort = state["effort"].to(self.effort, copy=True)
+    self._step = 0
+
   def _bins(self, frames: torch.Tensor) -> torch.Tensor:
     """Frame -> bin, as the motion command bins its adaptive-sampling failures."""
     if self._frame_bins is not None:

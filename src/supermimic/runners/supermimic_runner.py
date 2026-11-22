@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import dataclasses
+import os
+import signal
 import time
 from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import asdict, dataclass, field
@@ -47,11 +49,27 @@ ActorCriticCfg = Annotated[
   ActorCriticPolicyLearnerCfg, tyro.conf.subcommand(name="actor-critic")
 ]
 
+TRAINER_STATE = "trainer_state.pt"
+"""Everything a run needs to continue, written with every checkpoint and on SIGTERM."""
+
+
+def _save_atomic(obj: object, path: Path) -> None:
+  """``torch.save`` that never leaves a partly written ``path`` (a kill mid-write
+  keeps the previous file)."""
+  tmp = path.with_name(path.name + ".tmp")
+  torch.save(obj, tmp)
+  os.replace(tmp, path)
+
 
 @dataclass
 class SuperMimicRunnerCfg:
   wandb_project: str = "supermimic"
   run_name: str | None = None
+  log_dir: str | None = None
+  """Checkpoint directory in place of a new timestamped one under ``logs/<task>``.
+  If it holds a ``trainer_state.pt``, training continues from it: the weights, the
+  optimizer states, the counters, the reset sampler and the W&B run (the replay
+  buffer is refilled first). A requeued Slurm job resumes this way."""
   wandb_run_path: str | None = None
   headless: bool = True
   buffer_size: int = 1000
@@ -425,16 +443,33 @@ class SuperMimicRunner:
     self._update_actor_normalization(actor_inputs)
     self._pending_norm_updates.clear()
 
-  def _create_log_dir(self) -> Path:
-    """Create and return a timestamped log directory."""
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    log_dir = Path("logs", self.task_id, timestamp)
+  def _open_log_dir(self) -> tuple[Path, dict | None]:
+    """The log directory (``cfg.log_dir``, or a new timestamped one) and the
+    trainer state it holds, if any."""
+    if self.cfg.log_dir is None:
+      log_dir = Path("logs", self.task_id, datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+    else:
+      log_dir = Path(self.cfg.log_dir)
+      state_path = log_dir / TRAINER_STATE
+      if state_path.exists():
+        state = torch.load(state_path, map_location=self.device)
+        print(
+          f"[INFO] Resuming {log_dir} after step {state['step']} "
+          f"(iteration {state['log_count'] - 1})"
+        )
+        return log_dir, state
+      if (log_dir / "actor.pt").exists():
+        raise FileExistsError(
+          f"{log_dir} holds a checkpoint but no {TRAINER_STATE}; a new run there "
+          "would overwrite it"
+        )
     log_dir.mkdir(parents=True, exist_ok=True)
     print(f"[INFO] Logging to {log_dir}")
-    return log_dir
+    return log_dir, None
 
-  def _init_wandb(self, log_dir: Path) -> None:
-    """Initialize the W&B run and link the registry artifacts."""
+  def _init_wandb(self, log_dir: Path, run_id: str | None = None) -> None:
+    """Initialize the W&B run (or continue run ``run_id``) and link the registry
+    artifacts."""
     wandb_config = {
       "env_cfg": asdict(self.env.cfg),
       "runner_cfg": asdict(self.cfg),
@@ -445,6 +480,8 @@ class SuperMimicRunner:
       project=self.cfg.wandb_project,
       name=self.cfg.run_name or default_name,
       config=wandb_config,
+      id=run_id,
+      resume="allow" if run_id else None,
     )
 
     if self.registry_name:
@@ -463,6 +500,98 @@ class SuperMimicRunner:
     if env_close_fn:
       env_close_fn()
     wandb.finish()
+
+  def _optimizers(self) -> dict[str, list[torch.optim.Optimizer]]:
+    learner = self.policy_learner
+    groups = {
+      "world_model": self.world_model_learner.optimizers,
+      "actor": learner.actor_optimizers,
+    }
+    if getattr(learner, "critic_optimizers", None) is not None:
+      groups["critic"] = learner.critic_optimizers
+    return groups
+
+  def _trainer_state(self, step: int, log_count: int, wm_updates: int) -> dict:
+    """What ``_restore`` continues from after loop step ``step``: the weights, the
+    optimizer states, the counters, the reset sampler and the W&B run id. The
+    replay buffer is left out (``_refill_replay_buffer``)."""
+    learner = self.policy_learner
+    state = {
+      "step": step,
+      "log_count": log_count,
+      "wm_updates": wm_updates,
+      "wandb_run_id": wandb.run.id if wandb.run is not None else None,
+      "logger": {
+        "tot_timesteps": self.logger.tot_timesteps,
+        "tot_time": self.logger.tot_time,
+      },
+      "world_model": self._wm.bundle(),
+      "actor": learner.actor.state_dict(),
+      "optimizers": {
+        name: [o.state_dict() for o in opts] for name, opts in self._optimizers().items()
+      },
+    }
+    for name, module in (
+      ("actor_ema", getattr(learner, "ema_actor", None)),
+      ("critic", getattr(learner, "critic", None)),
+    ):
+      if module is not None:
+        state[name] = module.state_dict()
+    if self._sampler is not None:
+      state["sampler"] = self._sampler.state_dict()
+    return state
+
+  def _restore(self, state: dict) -> tuple[int, int, int]:
+    """Load a ``_trainer_state``; returns (first loop step, log_count, wm_updates).
+
+    Runs before any update: the updates are captured as CUDA graphs over the
+    optimizer state they first see. Optimizer or sampler state missing from
+    ``state`` (one written by hand for a run checkpointed before trainer_state.pt
+    existed) starts fresh."""
+    learner = self.policy_learner
+    self._wm.load_bundle(state["world_model"])
+    learner.actor.load_state_dict(state["actor"])
+    for name, module in (
+      ("actor_ema", getattr(learner, "ema_actor", None)),
+      ("critic", getattr(learner, "critic", None)),
+    ):
+      if module is not None:
+        module.load_state_dict(state[name])
+    saved = state.get("optimizers", {})
+    for name, opts in self._optimizers().items():
+      if name not in saved:
+        print(f"[WARN] Resume: no {name} optimizer state; it starts fresh")
+        continue
+      for opt, opt_state in zip(opts, saved[name], strict=True):
+        opt.load_state_dict(opt_state)
+    if self._sampler is not None:
+      if "sampler" in state:
+        self._sampler.load_state_dict(state["sampler"])
+      else:
+        print("[WARN] Resume: no reset-sampler state; every bin starts unmeasured")
+    self.logger.tot_timesteps = state["logger"]["tot_timesteps"]
+    self.logger.tot_time = state["logger"]["tot_time"]
+    return state["step"] + 1, state["log_count"], state["wm_updates"]
+
+  def _refill_replay_buffer(self) -> None:
+    """Collect with the restored policy, without updates, until the replay buffer
+    is full again, as it was when the run stopped."""
+    t0 = time.time()
+    while (
+      self.replay_buffer.num_transitions < self.cfg.buffer_size
+      and not self._stop_requested
+    ):
+      self.step()
+    print(
+      f"[INFO] Refilled the replay buffer: {self.cfg.buffer_size} steps in "
+      f"{time.time() - t0:.0f} s"
+    )
+
+  def _request_stop(self, signum: int, frame: object) -> None:
+    """SIGTERM (Slurm preemption, scancel, time limit): stop after this step and
+    write the trainer state. Printing here could re-enter a print in progress."""
+    del signum, frame
+    self._stop_requested = True
 
   def _init_policy(self) -> None:
     actor = build_actor(self.cfg, self._wm, self.device)
@@ -630,11 +759,19 @@ class SuperMimicRunner:
     )
 
   def run(self) -> None:
-    log_dir = self._create_log_dir()
-    self._init_wandb(log_dir)
+    self._stop_requested = False
+    previous_handler = signal.signal(signal.SIGTERM, self._request_stop)
+    log_dir, state = self._open_log_dir()
+    self._init_wandb(log_dir, run_id=state["wandb_run_id"] if state else None)
 
     self.env.reset()
     self._seed_sim_history()
+
+    start, log_count, wm_updates = 0, 0, 0
+    if state is not None:
+      start, log_count, wm_updates = self._restore(state)
+      del state
+      self._refill_replay_buffer()
 
     print(f"[INFO] Starting training loop for {self.cfg.max_iterations} iterations...")
 
@@ -651,12 +788,10 @@ class SuperMimicRunner:
     wm_learn_time = 0.0
     policy_learn_time = 0.0
     loss_dict: dict[str, torch.Tensor] = {}
-    log_count = 0
     uploader = ThreadPoolExecutor(max_workers=1)
     upload: Future | None = None
 
-    wm_updates = 0
-    for step in range(self.cfg.max_iterations):
+    for step in range(start, self.cfg.max_iterations):
       num_collected_steps += self.step()
 
       for _ in range(should_train(step)):
@@ -737,7 +872,19 @@ class SuperMimicRunner:
             run_name=wandb.run.name,
             term_widths=self._representation.proprio_term_widths(self._num_actions),
           )
+        _save_atomic(
+          self._trainer_state(step, log_count, wm_updates), log_dir / TRAINER_STATE
+        )
         upload = uploader.submit(log_model_artifact, checkpoint_files)
 
+      if self._stop_requested:
+        _save_atomic(
+          self._trainer_state(step, log_count, wm_updates), log_dir / TRAINER_STATE
+        )
+        print(f"[INFO] SIGTERM: saved {log_dir / TRAINER_STATE} after step {step}")
+        wandb.mark_preempting()
+        break
+
+    signal.signal(signal.SIGTERM, previous_handler)
     uploader.shutdown()
     self._cleanup()
