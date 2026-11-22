@@ -88,19 +88,21 @@ def make_mock_dynamics(
   rep_state_dim: int = 214,
   num_actions: int = 29,
 ) -> MagicMock:
-  """Mock ``Dynamics`` matching ``forward(rep_state, action, aux_state, sim_ctx)``."""
+  """Mock ``Dynamics`` matching ``forward(rep_state, action, aux_state, sim_ctx, prev_cmd)``."""
   dyn = MagicMock()
   dyn.num_rep_state = rep_state_dim
   dyn.num_actions = num_actions
   dyn.dt = 0.02
+  dyn.prev_command = False
 
   def forward(
     rep_state: torch.Tensor,
     action: torch.Tensor,
     aux_state: torch.Tensor,
     sim_ctx: torch.Tensor,
+    prev_cmd: torch.Tensor | None = None,
   ) -> tuple[torch.Tensor, torch.Tensor]:
-    del sim_ctx
+    del sim_ctx, prev_cmd
     B = rep_state.shape[0]
     d = rep_state.device
     return (torch.randn(B, 7, device=d), torch.randn(B, rep_state_dim, device=d))

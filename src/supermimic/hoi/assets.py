@@ -21,6 +21,7 @@ variants whenever the object turns them below ground. Parked hulls sit
 
 from __future__ import annotations
 
+import functools
 import json
 from pathlib import Path
 
@@ -34,6 +35,7 @@ from mjlab.entity import EntityCfg
 from mjlab.utils.spec_config import CollisionCfg
 
 from supermimic.hoi.library import ObjectVariant
+from supermimic.hoi.physics_hw3 import Hw3Options, apply_hw3_spec, hw3_articulation
 
 ASSET_DIR = Path(__file__).parent / "assets" / "g1_collision"
 GROUND, BODY, FOOT_CAPSULE, FOOT_HULL, OBJECT, OBJECT_FLOOR = 1, 2, 4, 8, 16, 32
@@ -76,9 +78,12 @@ def _read_obj(path: Path) -> tuple[list[float], list[int]]:
   return verts, faces
 
 
-def g1_hoi_spec() -> mujoco.MjSpec:
-  """mjlab's G1 with the hand capsules replaced by rubber-hand hulls and foot hulls added."""
+def g1_hoi_spec(hw3: Hw3Options | None = None) -> mujoco.MjSpec:
+  """mjlab's G1 with the hand capsules replaced by rubber-hand hulls and foot hulls added;
+  with ``hw3``, also Fengqiao's joint friction and lidar frame (``physics_hw3``)."""
   spec = get_spec()
+  if hw3 is not None:
+    apply_hw3_spec(spec, hw3)
   for side in ("left", "right"):
     spec.delete(spec.geom(f"{side}_hand_collision"))
   manifest = json.loads((ASSET_DIR / "manifest.json").read_text())
@@ -100,12 +105,25 @@ def g1_hoi_spec() -> mujoco.MjSpec:
   return spec
 
 
-def get_g1_hoi_robot_cfg() -> EntityCfg:
+def get_g1_hoi_robot_cfg(physics: str = "mjlab", hw3: Hw3Options | None = None) -> EntityCfg:
+  """The HOI G1. physics "mjlab": mjlab's G1 actuators (implicit position actuators, no joint
+  friction); "hw3": Fengqiao's motors, delay and joint friction (``physics_hw3``; ``hw3``
+  picks which parts are on, default all). Collision geometry is the same for both."""
+  if physics == "mjlab":
+    return EntityCfg(
+      init_state=KNEES_BENT_KEYFRAME,
+      collisions=(G1_HOI_COLLISION,),
+      spec_fn=g1_hoi_spec,
+      articulation=G1_ARTICULATION,
+    )
+  if physics != "hw3":
+    raise ValueError(f"unknown robot physics {physics!r} (mjlab or hw3)")
+  hw3 = hw3 or Hw3Options()
   return EntityCfg(
     init_state=KNEES_BENT_KEYFRAME,
     collisions=(G1_HOI_COLLISION,),
-    spec_fn=g1_hoi_spec,
-    articulation=G1_ARTICULATION,
+    spec_fn=functools.partial(g1_hoi_spec, hw3),
+    articulation=hw3_articulation(hw3),
   )
 
 

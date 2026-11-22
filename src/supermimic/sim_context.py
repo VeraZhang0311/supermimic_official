@@ -202,6 +202,83 @@ class ObjectMassSpec(SimContextSpec):
     return torch.log(env.sim.model.body_mass[:, self._body : self._body + 1])
 
 
+def hw3_motor_group(env: ManagerBasedRlEnv):
+  """The robot's fused group of hw3 motors (``supermimic.hoi.physics_hw3``), or None."""
+  from supermimic.hoi.physics_hw3 import G1MotorActuator
+
+  fused = getattr(env.scene["robot"], "_fused_actuator_group", None)
+  for group in getattr(fused, "_groups", ()):
+    if issubclass(group.actuator_type, G1MotorActuator):
+      return group
+  return None
+
+
+class MotorDelaySpec(SimContextSpec):
+  """hw3 command delay of each world, physics steps (drawn at every reset)."""
+
+  name = "motor_delay"
+  dim = 1
+
+  def bind(self, env: ManagerBasedRlEnv) -> list[tuple[float, float]]:
+    group = hw3_motor_group(env)
+    return [(float(group.min_lag), float(group.max_lag))]
+
+  def read(self, env: ManagerBasedRlEnv) -> torch.Tensor:
+    return hw3_motor_group(env).delay_buffer.current_lags[:, None].float()
+
+
+class MotorTorqueScaleSpec(SimContextSpec):
+  """hw3 per-joint torque (envelope) scale of each world (drawn at every reset),
+  in the motor group's joint order."""
+
+  name = "motor_torque_scale"
+  dim = 0  # set in bind()
+
+  def bind(self, env: ManagerBasedRlEnv) -> list[tuple[float, float]]:
+    group = hw3_motor_group(env)
+    ranges = {tuple(a.cfg.torque_scale_range) for a in group.absorbed_actuators}
+    if len(ranges) != 1:
+      raise ValueError(f"MotorTorqueScaleSpec: the motors have different ranges {ranges}")
+    self.dim = int(group.target_ids.numel())
+    return [ranges.pop()] * self.dim
+
+  def read(self, env: ManagerBasedRlEnv) -> torch.Tensor:
+    return hw3_motor_group(env).params["torque_scale"]
+
+
+class JointFrictionSpec(SimContextSpec):
+  """Each world's joint frictionloss over the measured (nominal) one, per robot
+  joint: the hw3 startup randomization (``hw3_joint_friction_*`` events)."""
+
+  name = "joint_friction"
+  dim = 0  # set in bind()
+
+  def bind(self, env: ManagerBasedRlEnv) -> list[tuple[float, float]]:
+    from supermimic.hoi.physics_hw3 import FRICTION_LEVELS
+
+    robot = env.scene["robot"]
+    names = list(robot.joint_names)
+    self._dofs = robot.indexing.joint_v_adr.clone()
+    self._nominal = torch.tensor([FRICTION_LEVELS[j][0] for j in names], device=env.device)
+    ranges: list[tuple[float, float] | None] = [None] * len(names)
+    for key, term in env.cfg.events.items():
+      if not key.startswith("hw3_joint_friction"):
+        continue
+      pats = term.params["asset_cfg"].joint_names
+      for i, j in enumerate(names):
+        if any(re.fullmatch(p, j) for p in pats):
+          ranges[i] = tuple(term.params["ranges"])
+    if any(r is None for r in ranges):
+      raise ValueError("JointFrictionSpec: a joint without a friction randomization range")
+    self.dim = len(names)
+    return ranges  # type: ignore[return-value]
+
+  def read(self, env: ManagerBasedRlEnv) -> torch.Tensor:
+    fl = env.sim.model.dof_frictionloss
+    fl = fl[:, self._dofs] if fl.ndim == 2 else fl[self._dofs].expand(env.num_envs, -1)
+    return fl / self._nominal
+
+
 class SimContext(nn.Module):
   def __init__(self, specs: list[SimContextSpec], ranges: list[tuple[float, float]]):
     super().__init__()
@@ -225,6 +302,16 @@ class SimContext(nn.Module):
     specs = [c() for c in candidates if c.name in env.cfg.events]
     if "object_variant" in env.cfg.events:
       specs += [ObjectIdentitySpec(), ObjectMassSpec()]
+    # hw3 physics: the randomized motor and friction parameters, after the
+    # others so that a model trained without them keeps its column layout.
+    group = hw3_motor_group(env)
+    if group is not None:
+      if group.max_lag > group.min_lag:
+        specs.append(MotorDelaySpec())
+      if any(a.cfg.torque_scale_range[0] != a.cfg.torque_scale_range[1] for a in group.absorbed_actuators):
+        specs.append(MotorTorqueScaleSpec())
+    if any(k.startswith("hw3_joint_friction") for k in env.cfg.events):
+      specs.append(JointFrictionSpec())
     if not specs:
       raise RuntimeError(
         "No sim_ctx specs derived from env.cfg.events. "

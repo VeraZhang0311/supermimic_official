@@ -111,6 +111,24 @@ class SuperMimicRunnerCfg:
   """Held-out HOI library played in-process by ``supermimic.hoi.evaluate`` every
   ``eval_interval`` logged iterations (results under ``Eval/`` on W&B)."""
   eval_interval: int = 2000
+  hoi_physics: Literal["mjlab", "hw3"] = "mjlab"
+  """HOI robot physics (``supermimic.hoi.env_cfg.configure_hoi_physics``): "mjlab" (mjlab's
+  G1 actuators) or "hw3" (Fengqiao's lab G1: motor envelope, delay, joint friction, his
+  action scale). train.py applies it to the env; the protected evaluation runs it nominal."""
+  hoi_push: bool = False
+  """With hw3: his periodic base-velocity pushes during training."""
+  hoi_action_contract: Literal["mjlab", "hw3"] | None = None
+  """Whose action scale the policy speaks (None: ``hoi_physics``'). A policy trained
+  on mjlab physics keeps "mjlab" when it continues on hw3: his scale differs on the
+  hip pitch (0.351 vs 0.548)."""
+  wm_prev_command: bool | None = None
+  """The dynamics also sees the command in flight (``Dynamics.prev_command``).
+  None = auto: on with hw3 physics, whose command delay applies it in the first
+  2-4 physics steps of each step."""
+  init_from: str | None = None
+  """Run directory (actor.pt, actor_ema.pt, critic.pt, world_model.pt) whose weights
+  start this new run; the inputs this run adds (sim context columns, the in-flight
+  command) start at zero weight. Ignored when ``log_dir`` resumes a run."""
 
 
 @dataclass
@@ -187,6 +205,7 @@ def build_world_model(
     action_scale,
     action_offset,
     hidden_dims=cfg.dynamics_hidden_dims,
+    prev_command=bool(cfg.wm_prev_command),
   ).to(device)
 
   return WorldModel(
@@ -205,6 +224,8 @@ def resolve_auto_cfg(cfg: SuperMimicRunnerCfg, hoi: bool) -> SuperMimicRunnerCfg
     cfg.latent_dim = 64 if hoi else 32
   if cfg.wm_warmup_updates < 0:
     cfg.wm_warmup_updates = 500 if hoi else 0
+  if cfg.wm_prev_command is None:
+    cfg.wm_prev_command = hoi and cfg.hoi_physics == "hw3"
   policy = dataclasses.replace(cfg.policy)
   if policy.grad_accum_chunks == 0:
     policy.grad_accum_chunks = 2 if hoi else 1  # HOI at 4096 envs: 39.5 GB on an L40; 1 chunk OOMs
@@ -240,6 +261,29 @@ def build_actor(
     latent_bc_weight=cfg.latent_bc_weight,
     history_length=cfg.history_length,
   ).to(device)
+
+
+def load_widened(module: torch.nn.Module, state: dict) -> list[str]:
+  """Load ``state`` into ``module`` where a 2-D weight of ``module`` may have more
+  input columns than in ``state``: the old ones are copied, the new last ones are
+  zero. Every other tensor must match in shape. Returns the widened keys."""
+  own = module.state_dict()
+  if set(own) != set(state):
+    raise ValueError(f"state dict keys differ: {sorted(set(own) ^ set(state))}")
+  out, widened = {}, []
+  for key, new in own.items():
+    old = state[key].to(new.device, new.dtype)
+    if old.shape == new.shape:
+      out[key] = old
+    elif old.ndim == 2 and old.shape[0] == new.shape[0] and old.shape[1] < new.shape[1]:
+      grown = torch.zeros_like(new)
+      grown[:, : old.shape[1]] = old
+      out[key] = grown
+      widened.append(key)
+    else:
+      raise ValueError(f"{key}: {tuple(old.shape)} cannot be widened to {tuple(new.shape)}")
+  module.load_state_dict(out)
+  return widened
 
 
 def load_wandb_checkpoint(wandb_run_path: str, wm: WorldModel, device: str) -> None:
@@ -393,7 +437,19 @@ class SuperMimicRunner:
         self._representation.proprio_obs_dim(self._num_actions)
       )
     schema["sim_ctx"] = FieldSpec(self._sim_context.output_dim)
+    if self._dynamics.prev_command:
+      schema["prev_cmd"] = FieldSpec(self._num_actions)
     return schema
+
+  def _in_flight_command(self, prev_action: torch.Tensor) -> torch.Tensor:
+    """The command still in flight when this step's action is issued, in the
+    dynamics' proc space: the previous action's, or right after a reset the held
+    pose (mjlab backfills a reset world's actuator targets, and so its command
+    delay, with the reset joint positions; proc space carries the encoder bias)."""
+    term = self.action_manager.get_term(self.action_manager.active_terms[0])
+    held = term._entity.data.joint_pos_biased[:, term._target_ids]
+    just_reset = (self.env.unwrapped.episode_length_buf == 0).unsqueeze(-1)
+    return torch.where(just_reset, held, self._dynamics.proc(prev_action))
 
   def _step_and_store(
     self,
@@ -409,6 +465,8 @@ class SuperMimicRunner:
 
     raw_actions = actions.detach().clone()
     prev_action = self.action_manager.action.clone()
+    if self._dynamics.prev_command:
+      extra_fields = {**extra_fields, "prev_cmd": self._in_flight_command(prev_action)}
 
     next_obs, rewards, dones, extras = self.env.step(actions)
 
@@ -540,6 +598,46 @@ class SuperMimicRunner:
     if self._sampler is not None:
       state["sampler"] = self._sampler.state_dict()
     return state
+
+  def _init_from_weights(self, src: Path) -> None:
+    """Start a new run from the weights of run directory ``src`` (``init_from``):
+    actor, EMA actor, critic and world model; optimizers, counters, sampler and
+    replay buffer start fresh, and the world-model warm-up runs as for any new run.
+    Inputs this run adds are new last columns of the first layers (critic: sim
+    context; dynamics: sim context, in-flight command) and start at zero weight."""
+
+    def load(name: str):
+      return torch.load(src / name, map_location=self.device, weights_only=False)
+
+    learner = self.policy_learner
+    learner.actor.load_state_dict(load("actor.pt"))
+    ema = getattr(learner, "ema_actor", None)
+    if ema is not None:
+      ema.load_state_dict(load("actor_ema.pt") if (src / "actor_ema.pt").exists() else learner.actor.state_dict())
+    critic = getattr(learner, "critic", None)
+    widened = []
+    if critic is not None and (src / "critic.pt").exists():
+      widened += load_widened(critic, load("critic.pt"))
+    bundle = load("world_model.pt")
+    for name in ("action_scale", "action_offset"):
+      old, new = bundle["dynamics"][name].to(self.device), getattr(self._dynamics, name)
+      if old.shape != new.shape or not torch.allclose(old, new, atol=1e-6):
+        raise ValueError(
+          f"init_from: {src} was trained with another {name} than this env's; pick the same "
+          "action contract (--runner.hoi-action-contract)"
+        )
+    widened += [f"dynamics.{k}" for k in load_widened(self._dynamics, bundle["dynamics"])]
+    old_ctx, ctx = bundle["sim_context"], self._sim_context
+    n = old_ctx["mean"].numel()
+    if not (
+      torch.allclose(old_ctx["mean"].to(self.device), ctx.mean[:n])
+      and torch.allclose(old_ctx["scale"].to(self.device), ctx.scale[:n])
+    ):
+      raise ValueError(f"init_from: {src}'s sim context columns are not this run's first {n}")
+    print(
+      f"[INFO] Initialized from {src}: actor, EMA actor, critic, world model; widened "
+      f"{widened or 'nothing'} (sim context {n} -> {ctx.output_dim} columns)"
+    )
 
   def _restore(self, state: dict) -> tuple[int, int, int]:
     """Load a ``_trainer_state``; returns (first loop step, log_count, wm_updates).
@@ -772,6 +870,8 @@ class SuperMimicRunner:
       start, log_count, wm_updates = self._restore(state)
       del state
       self._refill_replay_buffer()
+    elif self.cfg.init_from:
+      self._init_from_weights(Path(self.cfg.init_from))
 
     print(f"[INFO] Starting training loop for {self.cfg.max_iterations} iterations...")
 

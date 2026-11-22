@@ -84,6 +84,9 @@ class WorldModelEnv:
     # Raw policy outputs (pre-scale/offset). Dynamics handles the transform;
     # the reward path consumes these directly.
     self.last_actions = batch["prev_action"].detach()
+    # The command in flight (Dynamics.prev_command): the stored one at the start,
+    # then each imagined action's.
+    self.prev_cmd = batch["prev_cmd"].detach() if self.dynamics.prev_command else None
     self.sim_ctx = batch["sim_ctx"]
     self.motion_times = batch["motion_time"]
     self._update_goal()
@@ -110,6 +113,8 @@ class WorldModelEnv:
     self.aux_state = next_aux_state
     self.joint_state = next_joint_state
     self.last_actions = actions
+    if self.prev_cmd is not None:
+      self.prev_cmd = self.dynamics.proc(actions)
 
     self._compute_commands()
 
@@ -158,7 +163,7 @@ class WorldModelEnv:
     the simulator scores it before advancing the clip.
     """
     next_aux_state, next_rep_state = self.dynamics(
-      rep_state, action, aux_state, sim_ctx
+      rep_state, action, aux_state, sim_ctx, getattr(self, "prev_cmd", None)
     )
     next_joint_state = self.representation.joint_state(next_rep_state)
     ref_body_pos_w, ref_body_quat_w, ref_body_lin_vel_w, ref_body_ang_vel_w = (

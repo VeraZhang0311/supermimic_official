@@ -9,12 +9,13 @@ from supermimic.runners.supermimic_runner import SuperMimicRunner
 class _Runner(SuperMimicRunner):
   """A runner holding only what ``_buffer_schema`` reads."""
 
-  def __init__(self, actor_obs_mode: str, history_length: int) -> None:
+  def __init__(self, actor_obs_mode: str, history_length: int, prev_command: bool = False) -> None:
     self._representation = SimpleNamespace(
       actor_obs_mode=actor_obs_mode, full_state_dim=71, proprio_obs_dim=lambda n: 64 + n
     )
     self._num_actions = 29
     self._sim_context = SimpleNamespace(output_dim=3)
+    self._dynamics = SimpleNamespace(prev_command=prev_command)
     self.cfg = SimpleNamespace(history_length=history_length)
 
 
@@ -22,3 +23,8 @@ def test_actor_obs_stored_only_for_proprio_with_history():
   assert "actor_obs" not in _Runner("proprio", 1)._buffer_schema()
   assert "actor_obs" in _Runner("proprio", 4)._buffer_schema()
   assert "actor_obs" not in _Runner("rep_state", 4)._buffer_schema()
+
+
+def test_prev_cmd_stored_only_for_a_dynamics_that_reads_it():
+  assert "prev_cmd" not in _Runner("rep_state", 1)._buffer_schema()
+  assert _Runner("rep_state", 1, prev_command=True)._buffer_schema()["prev_cmd"].dim == 29

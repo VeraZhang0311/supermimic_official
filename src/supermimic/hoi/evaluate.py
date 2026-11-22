@@ -32,7 +32,7 @@ import torch
 from mjlab.utils.forward_kinematics import ForwardKinematics
 from mjlab.utils.lab_api.math import quat_apply
 
-from supermimic.hoi.env_cfg import configure_hoi_env, hoi_env_cfg
+from supermimic.hoi.env_cfg import configure_hoi_env, configure_hoi_physics, hoi_env_cfg
 from supermimic.hoi.geometry import hand_probes
 from supermimic.hoi.library import read_variants
 from supermimic.hoi.mdp import WRIST_BODIES
@@ -58,10 +58,14 @@ DIAGNOSTICS = (
 KEEP_TERMINATIONS = ("time_out", "motion_end", "nonfinite_state")
 
 
-def hoi_eval_env_cfg(library: str) -> ManagerBasedRlEnvCfg:
-  """The HOI env for evaluation: one world per clip of ``library``, nominal physics."""
+def hoi_eval_env_cfg(
+  library: str, physics: str = "mjlab", action_contract: str | None = None
+) -> ManagerBasedRlEnvCfg:
+  """The HOI env for evaluation: one world per clip of ``library``, nominal ``physics``
+  (``configure_hoi_physics``) with the policy's ``action_contract``."""
   cfg = hoi_env_cfg(play=True)
   configure_hoi_env(cfg, library)
+  configure_hoi_physics(cfg, physics, nominal=True, action_contract=action_contract)
   cmd = cfg.commands["motion"]
   cmd.eval_clips = True
   cmd.sampling_mode, cmd.start_of_clip = "uniform", False
@@ -139,7 +143,9 @@ def summarize(clips: list[dict]) -> dict[str, float]:
 class HoiEvaluator:
   """Plays the held-out library with the runner's EMA actor; see the module doc."""
 
-  def __init__(self, runner: SuperMimicRunner, library: str):
+  def __init__(self, runner: SuperMimicRunner, library: str, physics: str | None = None):
+    """``physics``: the robot physics to evaluate on (default: the run's ``hoi_physics``);
+    the policy keeps the action contract of the physics it was trained on."""
     from supermimic.representations import create_representation
     from supermimic.scripts.train_utils import create_env
     from supermimic.tasks.task_spec import make_motion_task
@@ -155,8 +161,11 @@ class HoiEvaluator:
     # The eval env seeds the global RNGs; keep the training run's streams as they were.
     py_state, np_state = random.getstate(), np.random.get_state()
     cuda = [torch.device(device).index or 0] if torch.device(device).type == "cuda" else []
+    trained = getattr(runner.cfg, "hoi_physics", "mjlab")
+    contract = getattr(runner.cfg, "hoi_action_contract", None) or trained
+    self.physics = physics or trained
     with torch.random.fork_rng(devices=cuda):
-      self.env = create_env(hoi_eval_env_cfg(library), len(ends), device)
+      self.env = create_env(hoi_eval_env_cfg(library, self.physics, contract), len(ends), device)
     random.setstate(py_state)
     np.random.set_state(np_state)
     raw = self.env.unwrapped

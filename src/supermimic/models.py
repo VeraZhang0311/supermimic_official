@@ -49,6 +49,12 @@ class Dynamics(nn.Module):
   ``action`` is the raw post-clamp policy output — same distribution the
   policy sees back as ``last_action`` in its observation. Dynamics applies
   ``proc = action * scale + offset`` internally before normalization.
+
+  With ``prev_command`` the step also sees the command still in flight when
+  ``action`` is issued (``prev_cmd``, in proc space: the previous action's
+  ``proc``, or the held pose right after a reset). A command delay of a few
+  physics steps (hw3 physics) makes the first substeps of a step apply it,
+  so the next state depends on it. Its MLP columns follow the sim context.
   """
 
   def __init__(
@@ -59,6 +65,7 @@ class Dynamics(nn.Module):
     action_scale: torch.Tensor,
     action_offset: torch.Tensor,
     hidden_dims: tuple[int, ...],
+    prev_command: bool = False,
   ):
     super().__init__()
 
@@ -66,6 +73,7 @@ class Dynamics(nn.Module):
     self.num_actions = num_actions
     self.dt = representation.dt
     self._apply_prediction = representation.apply_prediction
+    self.prev_command = prev_command
 
     self.register_buffer("action_scale", action_scale.clone())
     self.register_buffer("action_offset", action_offset.clone())
@@ -74,7 +82,7 @@ class Dynamics(nn.Module):
     self.action_normalizer = _CudaGraphNormalization(num_actions)
 
     self.mlp = build_mlp(
-      self.num_rep_state + num_actions + sim_ctx_dim,
+      self.num_rep_state + num_actions + sim_ctx_dim + (num_actions if prev_command else 0),
       hidden_dims,
       output_dim=representation.prediction_dim,
     )
@@ -89,10 +97,16 @@ class Dynamics(nn.Module):
     action: torch.Tensor,
     aux_state: torch.Tensor,
     sim_ctx: torch.Tensor,
+    prev_cmd: torch.Tensor | None = None,
   ) -> tuple[torch.Tensor, torch.Tensor]:
+    """``prev_cmd``: the in-flight command (proc space), used with ``prev_command``;
+    None there stands for ``proc(action)`` (no command change)."""
     state_norm = self.state_normalizer(rep_state)
-    action_norm = self.action_normalizer(self.proc(action))
-    prediction = self.mlp(torch.cat([state_norm, action_norm, sim_ctx], dim=-1))
+    proc = self.proc(action)
+    parts = [state_norm, self.action_normalizer(proc), sim_ctx]
+    if self.prev_command:
+      parts.append(self.action_normalizer(proc if prev_cmd is None else prev_cmd))
+    prediction = self.mlp(torch.cat(parts, dim=-1))
     return self._apply_prediction(aux_state, rep_state, prediction, self.dt)
 
   def normalizers(self) -> list[_CudaGraphNormalization]:

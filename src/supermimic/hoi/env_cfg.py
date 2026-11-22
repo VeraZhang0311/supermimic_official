@@ -89,6 +89,43 @@ def configure_hoi_env(cfg: ManagerBasedRlEnvCfg, motion_dir: str) -> None:
   cfg.scene.entities["object_floor"] = get_object_floor_cfg()
 
 
+PHYSICS = ("mjlab", "hw3")
+
+
+def configure_hoi_physics(
+  cfg: ManagerBasedRlEnvCfg,
+  physics: str,
+  *,
+  nominal: bool = False,
+  action_contract: str | None = None,
+  push: bool = False,
+) -> None:
+  """Choose the robot's physics: "mjlab" (as trained so far) or "hw3" (Fengqiao's lab G1,
+  ``physics_hw3``). For "hw3" with ``nominal`` False, also its startup joint-friction
+  randomization, and with ``push`` his periodic pushes. ``nominal``: no randomization of
+  the motors (torque scale 1, the delay fixed at its middle). ``action_contract``: whose
+  action scale the policy speaks (default: the physics'; a policy trained on mjlab keeps
+  mjlab's scale on hw3 physics). The other randomization terms of the recipe (torso CoM
+  offset, encoder bias = his default-pose offset, foot friction) are the env's own."""
+  from mjlab.asset_zoo.robots.unitree_g1.g1_constants import G1_ACTION_SCALE
+
+  from supermimic.hoi import physics_hw3
+
+  if physics not in PHYSICS or (action_contract or physics) not in PHYSICS:
+    raise ValueError(f"physics / action_contract must be one of {PHYSICS}")
+  if physics == "hw3":
+    options = physics_hw3.Hw3Options.nominal() if nominal else physics_hw3.Hw3Options()
+    cfg.scene.entities["robot"] = get_g1_hoi_robot_cfg("hw3", options)
+    if not nominal:
+      cfg.events.update(physics_hw3.friction_scale_events())
+  if push:
+    if physics != "hw3" or nominal:
+      raise ValueError("push is part of the hw3 training recipe")
+    cfg.events["push_robot"] = physics_hw3.push_event()
+  scale = physics_hw3.action_scale() if (action_contract or physics) == "hw3" else G1_ACTION_SCALE
+  cfg.actions["joint_pos"].scale = dict(scale)
+
+
 def hoi_task_cfg(cfg: ManagerBasedRlEnvCfg) -> HoiTaskCfg:
   return cfg.rewards[HOI_REWARD_PREFIX + "object_pos"].params["task"]
 

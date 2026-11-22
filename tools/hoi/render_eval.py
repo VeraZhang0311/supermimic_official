@@ -99,7 +99,7 @@ def rollout(args) -> None:
   if runner.policy_learner.ema_actor is not None:
     runner.policy_learner.ema_actor.load_state_dict(load("actor_ema.pt"))
 
-  ev = RecordingEvaluator(runner, args.eval_lib)
+  ev = RecordingEvaluator(runner, args.eval_lib, physics=args.physics)
   raw = ev.env.unwrapped
   mjm = raw.sim.mj_model
   robot, obj = raw.scene["robot"], ev.cmd.object
@@ -143,6 +143,7 @@ def rollout(args) -> None:
         "run_dir": str(run_dir),
         "wandb_run": args.wandb_run,
         "eval_lib": args.eval_lib,
+        "physics": ev.physics,
         "scalars": scalars,
         "clips": clips,
       },
@@ -705,6 +706,11 @@ def main() -> None:
     "--wandb-run", required=True, help="entity/project/run_id, for the runner config"
   )
   r.add_argument("--num-envs", type=int, default=128)
+  r.add_argument(
+    "--physics",
+    choices=("mjlab", "hw3"),
+    help="robot physics of the evaluation (default: the run's); the policy keeps its own action scale",
+  )
   r.add_argument("--out", required=True)
   b = sub.add_parser("bundle")
   b.add_argument("--out", required=True, help="the rollout's output directory")
