@@ -62,20 +62,25 @@ def _version_index(artifact: Any) -> int:
 
 
 def log_model_artifact(
-  files: list[str], keep_last: int = 5, milestone_every: int = 25
+  files: list[str],
+  keep_last: int = 5,
+  milestone_every: int = 25,
+  aliases: list[str] | None = None,
 ) -> None:
   """Log ``files`` as a new version of the run's ``model`` checkpoint artifact.
 
   Named ``model-{run.id}``: artifact names are project-level keys and run names
   may repeat. Keeps the newest ``keep_last`` versions, every
   ``milestone_every``-th version, and any aliased version; deletes the rest.
+  ``aliases`` (e.g. ``eval-2000`` for an evaluated checkpoint) keep this
+  version for good.
   """
   assert wandb.run is not None, "log_model_artifact needs an active wandb run"
   try:
     artifact = wandb.Artifact(f"model-{wandb.run.id}", type="model")
     for path in files:
       artifact.add_file(path)
-    wandb.run.log_artifact(artifact)
+    wandb.run.log_artifact(artifact, aliases=aliases)
     collection = f"{wandb.run.entity}/{wandb.run.project}/model-{wandb.run.id}"
     versions = sorted(wandb.Api().artifacts("model", collection), key=_version_index)
     for stale in versions[:-keep_last]:

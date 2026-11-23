@@ -51,6 +51,8 @@ ActorCriticCfg = Annotated[
 
 TRAINER_STATE = "trainer_state.pt"
 """Everything a run needs to continue, written with every checkpoint and on SIGTERM."""
+EVAL_CHECKPOINTS = "eval_checkpoints"
+"""Run-dir subdirectory with one ``iter_<iteration>`` checkpoint per protected evaluation."""
 
 
 def _save_atomic(obj: object, path: Path) -> None:
@@ -111,6 +113,10 @@ class SuperMimicRunnerCfg:
   """Held-out HOI library played in-process by ``supermimic.hoi.evaluate`` every
   ``eval_interval`` logged iterations (results under ``Eval/`` on W&B)."""
   eval_interval: int = 2000
+  keep_eval_checkpoints: bool = True
+  """Keep the weights of every protected evaluation: in ``<log_dir>/eval_checkpoints/
+  iter_<iteration>`` (about 120 MB each for HOI) and on W&B as the ``model``
+  artifact version aliased ``eval-<iteration>``, which the pruning keeps."""
   hoi_physics: Literal["mjlab", "hw3"] = "mjlab"
   """HOI robot physics (``supermimic.hoi.env_cfg.configure_hoi_physics``): "mjlab" (mjlab's
   G1 actuators) or "hw3" (Fengqiao's lab G1: motor envelope, delay, joint friction, his
@@ -845,6 +851,40 @@ class SuperMimicRunner:
     for actor_td in actor_inputs:
       self.policy_learner.actor.update_normalization(actor_td)
 
+  def _write_checkpoint(self, directory: Path) -> list[str]:
+    """Write the world model, actor, EMA actor and critic (and the ONNX actor
+    where exported) into ``directory``; return the written files."""
+    directory.mkdir(parents=True, exist_ok=True)
+    world_model_path = str(directory / "world_model.pt")
+    actor_path = str(directory / "actor.pt")
+    torch.save(self._wm.bundle(), world_model_path)
+    torch.save(self.policy_learner.actor.state_dict(), actor_path)
+    files = [world_model_path, actor_path]
+    ema = getattr(self.policy_learner, "ema_actor", None)
+    if ema is not None:
+      ema_path = str(directory / "actor_ema.pt")
+      torch.save(ema.state_dict(), ema_path)
+      files.append(ema_path)
+    critic = getattr(self.policy_learner, "critic", None)
+    if critic is not None:
+      critic_path = str(directory / "critic.pt")
+      torch.save(critic.state_dict(), critic_path)
+      files.append(critic_path)
+    # Skip ONNX export on huge datasets.
+    if (
+      self._representation.actor_obs_mode == "proprio"
+      and self.motion.time_step_total <= 15_000
+    ):
+      assert wandb.run is not None
+      files += export_actor_as_onnx(
+        actor=self.policy_learner.actor,
+        env=self.env.unwrapped,
+        path=str(directory),
+        run_name=wandb.run.name,
+        term_widths=self._representation.proprio_term_widths(self._num_actions),
+      )
+    return files
+
   def _evaluate(self, log_count: int) -> None:
     """Protected evaluation, logged at this iteration's W&B step."""
     t0 = time.time()
@@ -933,6 +973,13 @@ class SuperMimicRunner:
         )
         if self.evaluator is not None and log_count > 0 and log_count % self.cfg.eval_interval == 0:
           self._evaluate(log_count)
+          if self.cfg.keep_eval_checkpoints:
+            # The evaluated weights, kept: locally in their own directory, on W&B
+            # under an alias that the artifact pruning never deletes.
+            eval_dir = log_dir / EVAL_CHECKPOINTS / f"iter_{log_count:06d}"
+            files = self._write_checkpoint(eval_dir)
+            print(f"[EVAL] iteration {log_count}: checkpoint kept in {eval_dir}")
+            upload = uploader.submit(log_model_artifact, files, aliases=[f"eval-{log_count}"])
 
         log_count += 1
         start_time = time.time()
@@ -945,33 +992,7 @@ class SuperMimicRunner:
         # The previous version must be logged before its files are overwritten.
         if upload is not None:
           upload.result()
-        world_model_path = str(log_dir / "world_model.pt")
-        actor_path = str(log_dir / "actor.pt")
-        torch.save(self._wm.bundle(), world_model_path)
-        torch.save(self.policy_learner.actor.state_dict(), actor_path)
-        checkpoint_files = [world_model_path, actor_path]
-        ema = getattr(self.policy_learner, "ema_actor", None)
-        if ema is not None:
-          ema_path = str(log_dir / "actor_ema.pt")
-          torch.save(ema.state_dict(), ema_path)
-          checkpoint_files.append(ema_path)
-        critic = getattr(self.policy_learner, "critic", None)
-        if critic is not None:
-          critic_path = str(log_dir / "critic.pt")
-          torch.save(critic.state_dict(), critic_path)
-          checkpoint_files.append(critic_path)
-        # Skip ONNX export on huge datasets.
-        if (
-          self._representation.actor_obs_mode == "proprio"
-          and self.motion.time_step_total <= 15_000
-        ):
-          checkpoint_files += export_actor_as_onnx(
-            actor=self.policy_learner.actor,
-            env=self.env.unwrapped,
-            path=str(log_dir),
-            run_name=wandb.run.name,
-            term_widths=self._representation.proprio_term_widths(self._num_actions),
-          )
+        checkpoint_files = self._write_checkpoint(log_dir)
         _save_atomic(
           self._trainer_state(step, log_count, wm_updates), log_dir / TRAINER_STATE
         )
