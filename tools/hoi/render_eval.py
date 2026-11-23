@@ -46,7 +46,7 @@ def rollout(args) -> None:
   from mjlab.tasks.registry import load_env_cfg
 
   import supermimic.tasks  # noqa: F401
-  from supermimic.hoi.env_cfg import configure_hoi_env
+  from supermimic.hoi.env_cfg import configure_hoi_env, configure_hoi_physics
   from supermimic.hoi.evaluate import HoiEvaluator
   from supermimic.runners.run_config import load_runner_cfg
   from supermimic.runners.supermimic_runner import SuperMimicRunner
@@ -83,6 +83,10 @@ def rollout(args) -> None:
   cfg.eval_motion_file = None  # built below, as the recording subclass
   env_cfg = load_env_cfg("SuperMimic-HOI-G1", play=False)
   configure_hoi_env(env_cfg, args.train_lib)
+  # The run's own physics, as train.py builds it: its sim context and world model match.
+  configure_hoi_physics(
+    env_cfg, cfg.hoi_physics, push=cfg.hoi_push, action_contract=cfg.hoi_action_contract
+  )
   env_cfg.commands["motion"].sampling_mode = (
     "external" if cfg.sampling_mode == "return" else cfg.sampling_mode
   )
