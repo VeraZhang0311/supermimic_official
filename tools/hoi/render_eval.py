@@ -8,15 +8,19 @@ verdicts, plus the scene model (``scene.mjb``).
 
 ``bundle`` picks ``--per-type`` clips per object type, ``--passes`` of them that
 passed body_and_object_pose and the rest failing ones (topped up from the other
-group when one runs short), and cuts them into a small portable bundle (poses,
-errors, verdicts, object meshes in the object frame).
+group when one runs short), or with ``--failed`` every clip that failed
+body_and_object_pose, and cuts them into a small portable bundle (poses, errors,
+verdicts, object meshes in the object frame). Clips are grouped by object type.
 
 ``render`` replays a bundle's saved poses (no policy, no physics) on any machine
 with MuJoCo, Pillow and ffmpeg: three panels under one camera (simulation,
 overlay with the reference as a green ghost, reference), the reference's hands
 red while it labels contact, the verdict, live errors and error curves with the
 eval's thresholds. It checks its own kinematics (the robot built from a G1 URDF)
-against the simulator's body positions.
+against the simulator's body positions. On a Linux node without a GPU it renders
+with Mesa's llvmpipe (``MUJOCO_GL=egl``, about 0.9 s per frame on 4 cores);
+``RENDER_FONT`` names a font with CJK glyphs where the system has none, and
+``--jobs N --shard k`` renders one of N shards (e.g. one Slurm array task each).
 
   python tools/hoi/render_eval.py rollout --train-lib LIB --eval-lib EVAL --run-dir logs/... \
       --wandb-run entity/project/run_id --out DIR                       # cluster, GPU
@@ -28,6 +32,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import random
 import subprocess
 import sys
@@ -164,6 +169,15 @@ def rollout(args) -> None:
 # ---------------------------------------------------------------- render
 
 
+def failed(clips: list[dict]) -> list[int]:
+  """Indices of every clip that failed body_and_object_pose, grouped by type."""
+  types = list(dict.fromkeys(c["type"] for c in clips))
+  return sorted(
+    (i for i, c in enumerate(clips) if not c["body_and_object_pose_pass"]),
+    key=lambda i: (types.index(clips[i]["type"]), i),
+  )
+
+
 def choose(clips: list[dict], per_type: int, passes: int, seed: int) -> list[int]:
   """Indices of ``per_type`` clips per type: ``passes`` passing, the rest failing,
   topping up from the other group. Failing picks mix full losses (body failed
@@ -234,7 +248,8 @@ def bundle(args) -> None:
     "body_names": [model.body(b).name.split("/")[-1] for b in bodies],
   }
   index = []
-  for c in choose(clips, args.per_type, args.passes, args.seed):
+  picks = failed(clips) if args.failed else choose(clips, args.per_type, args.passes, args.seed)
+  for c in picks:
     clip = clips[c]
     frames = np.nonzero(z["valid"][:, c])[0]
     rec = {k: z[k][frames, c] for k in SERIES}
@@ -384,10 +399,12 @@ def build_scene(urdf: Path, object_obj: Path):
 def _fonts():
   from PIL import ImageFont
 
-  for path in (
+  for path in filter(None, (
+    os.environ.get("RENDER_FONT"),  # a font with CJK glyphs where the system has none
     "C:/Windows/Fonts/msyh.ttc",
+    "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
     "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-  ):
+  )):  # fmt: skip
     try:
       return {n: ImageFont.truetype(path, n) for n in (14, 16, 18, 20, 24, 28)}
     except OSError:
@@ -531,7 +548,15 @@ def render_clip(
   )
   first = clip["first_fail_s"]
   kind = "手接触" if clip["kind"] == "hand" else "脚接触"
+  if clip.get("split"):  # train / eval, when the bundle records it
+    kind += f"  |  {clip['split']}"
   head = f"{number:02d}/{total}  {TYPE_ZH.get(clip['type'], '')} {clip['type']}  |  {kind}  |  {clip['name'].split('_', 2)[-1]}"
+  t_end = float(z["ref_time_s"][-1])
+  right_w = fonts[18].getlength(f"{label}   |   {t_end:.2f} / {t_end:.2f} s   |   {1 / dt:g} fps")
+  # The largest title size that leaves the top-right label clear.
+  head_size = next(
+    (s for s in (28, 24, 20) if fonts[s].getlength(head) <= CANVAS[0] - 54 - right_w), 18
+  )
   ff = subprocess.Popen(
     ["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{CANVAS[0]}x{CANVAS[1]}",
      "-r", f"{1 / dt:g}", "-i", "-", "-an", "-c:v", "libx264", "-preset", "fast", "-crf", "20",
@@ -567,7 +592,7 @@ def render_clip(
         frame.paste(Image.fromarray(renderer.render()), (col * PANEL_W, HEAD))
       draw = ImageDraw.Draw(frame)
       t = float(z["ref_time_s"][i])
-      draw.text((18, 5), head, font=fonts[28], fill="#eff6ff")
+      draw.text((18, 5 + (28 - head_size) // 2), head, font=fonts[head_size], fill="#eff6ff")
       right = f"{label}   |   {t:.2f} / {z['ref_time_s'][-1]:.2f} s   |   {1 / dt:g} fps"
       draw.text((CANVAS[0] - 18 - draw.textlength(right, font=fonts[18]), 12), right, font=fonts[18], fill=TEXT)
       for col, (title, color) in enumerate(TITLES):
@@ -728,6 +753,11 @@ def main() -> None:
   b.add_argument("--per-type", type=int, default=4)
   b.add_argument("--passes", type=int, default=2)
   b.add_argument("--seed", type=int, default=42)
+  b.add_argument(
+    "--failed",
+    action="store_true",
+    help="every clip that failed body_and_object_pose (ignores --per-type, --passes)",
+  )
   v = sub.add_parser("render")
   v.add_argument("--bundle", required=True)
   v.add_argument("--videos", required=True, help="output directory")
