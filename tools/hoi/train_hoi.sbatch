@@ -29,9 +29,12 @@
 #SBATCH --requeue
 
 set -euo pipefail
-# Slurm signals every process of the job, then kills them 30 s (KillWait) later.
-# train.py saves its trainer state on SIGTERM; this script must not exit first.
-trap '' TERM
+# Slurm's job termination (preemption, scancel, time limit) sends SIGTERM to this
+# shell only, not to its children (checked 2026-11-23 on Slurm 25.05), then SIGKILL
+# to all 30 s (KillWait) later. Forward it to train.py, which saves its trainer state
+# and exits, and wait for it.
+pid=
+trap 'echo "[$(date)] SIGTERM: forwarding to train.py"; [ -n "$pid" ] && kill -TERM $pid 2>/dev/null; true' TERM
 LIB=${1:?usage: sbatch train_hoi.sbatch <library dir> [train.py args...]}
 shift
 export PATH=$HOME/.local/bin:$PATH
@@ -81,10 +84,17 @@ if [ "${PRECHECK:-0}" = 1 ] && [ "${SLURM_RESTART_COUNT:-0}" = 0 ]; then
     exit 1
   fi
 fi
-uv run --no-sync python src/supermimic/scripts/train.py SuperMimic-HOI-G1 \
+# The venv's python itself (not `uv run`), so the forwarded SIGTERM reaches train.py.
+"$UV_PROJECT_ENVIRONMENT/bin/python" src/supermimic/scripts/train.py SuperMimic-HOI-G1 \
   --motion_file "$LIB" \
   --num_envs 4096 \
   --runner.wandb_project "$WANDB_PROJECT" \
   --runner.save_interval 2500 \
   --runner.log_dir "$RUN_DIR" \
-  "$@"
+  "$@" &
+pid=$!
+status=0
+wait $pid || status=$?  # returns early when the trap runs
+while kill -0 $pid 2>/dev/null; do status=0; wait $pid || status=$?; done
+echo "[$(date)] train.py exited with $status"
+exit $status
